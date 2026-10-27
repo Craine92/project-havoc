@@ -1,5 +1,6 @@
 export {
   PROTOCOL_VERSION,
+  allowedActionSchema,
   actionIdSchema,
   clientMessageSchema,
   errorCodeSchema,

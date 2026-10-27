@@ -485,4 +485,28 @@ describe('public and private projections', () => {
     expect(projectHostLobby(session, 'unknown_host')).toBeNull()
     expect(projectPlayerLobby(session, 'unknown_player')).toBeNull()
   })
+
+  it('exposes only role-appropriate actions and lets only the host close', () => {
+    const { session, services, host } = fixture()
+    const joined = join(session, services, 'Nova', 'action_join_0050')
+    expect(projectHostLobby(joined.session, host.hostId)?.allowedActions).toContain('room.close')
+    expect(projectPlayerLobby(joined.session, joined.actor.playerId)?.allowedActions).not.toContain('room.close')
+
+    const denied = applyLobbyCommand(joined.session, {
+      type: 'close-session',
+      actionId: 'action_close_denied',
+      expectedRevision: joined.session.revision,
+      actor: { role: 'display-host', hostId: joined.actor.playerId, reconnectToken: joined.actor.reconnectToken },
+    }, services)
+    expect(denied).toMatchObject({ ok: false, error: { code: 'NOT_AUTHORIZED' } })
+
+    const closed = applyLobbyCommand(denied.session, {
+      type: 'close-session',
+      actionId: 'action_close_host',
+      expectedRevision: denied.session.revision,
+      actor: host,
+    }, services)
+    expect(closed).toMatchObject({ ok: true, session: { phase: 'closed' } })
+    expect(projectHostLobby(closed.session, host.hostId)?.allowedActions).toEqual([])
+  })
 })

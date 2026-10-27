@@ -33,10 +33,21 @@ export function projectPublicLobby(session: LobbySession): PublicLobbyProjection
 
 export function projectHostLobby(session: LobbySession, hostId: HostId): PrivateLobbyProjection | null {
   if (hostId !== session.host.hostId) return null
+  const connectedPlayers = session.players.filter((player) => player.connected)
+  const canStart = connectedPlayers.length >= MIN_PLAYERS
+    && connectedPlayers.every((player) => player.ready)
   return {
     ...projectPublicLobby(session),
     visibility: 'private',
     viewer: { role: 'display-host', hostId },
+    allowedActions: session.phase === 'lobby'
+      ? [
+          'room.set-mode',
+          ...(session.players.length > 0 ? ['room.remove-player' as const] : []),
+          ...(canStart ? ['room.start' as const] : []),
+          'room.close',
+        ]
+      : session.phase === 'started' ? ['room.close'] : [],
   }
 }
 
@@ -46,5 +57,6 @@ export function projectPlayerLobby(session: LobbySession, playerId: PlayerId): P
     ...projectPublicLobby(session),
     visibility: 'private',
     viewer: { role: 'player', playerId },
+    allowedActions: session.phase === 'lobby' ? ['player.rename', 'player.set-ready'] : [],
   }
 }

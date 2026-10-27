@@ -110,6 +110,8 @@ Nicht enthalten: Kartendeck, Kartenaktionen, Classic-Züge, Chaos-Karten, Ereign
 
 ### A01.3 – Autoritativer Sitzungsserver
 
+**Status:** In Auftrag 004 umgesetzt
+
 **Abhängigkeiten:** A01.2
 
 **Lieferumfang:**
@@ -132,7 +134,11 @@ Nicht enthalten: Kartendeck, Kartenaktionen, Classic-Züge, Chaos-Karten, Ereign
 
 **Tests:** Serverintegration mit mindestens einem Display und acht simulierten Spielern; Berechtigungs-, Rate-/Größen-, Konkurrenz-, Deduplizierungs- und Fehlerpfadtests.
 
+**Umsetzung:** Kontrollierbarer HTTP-/Socket.IO-Server, In-Memory-Repository, kryptografische Raumcodes, serielle Warteschlange je Raum, rollenbezogene Vollsnapshots, Spieler-/Host-Reconnect, konfigurierbare Retention, strukturierte Logs, CORS-/Payload-/Rate-Grenzen und 28 echte Socket.IO-Integrationsszenarien.
+
 ### A01.4 – TV-Lobby
+
+**Status:** In Auftrag 005 umgesetzt
 
 **Abhängigkeiten:** A01.2 und stabiler Serverpfad aus A01.3
 
@@ -155,6 +161,8 @@ Nicht enthalten: Kartendeck, Kartenaktionen, Classic-Züge, Chaos-Karten, Ereign
 - Neuladen stellt dieselbe Sitzung mit gültiger Hostberechtigung wieder her.
 
 **Tests:** Komponenten-/Interaktionstests, QR-Payload-Test, Playwright für Erstellen, Reconnect, Startgate und Fehlerzustände.
+
+**Umsetzung:** Eigenständiges Dark-Fantasy-TV-Design, echter Socket.IO-Adapter, Raumerstellung, sessionStorage-Reconnect, Raumcode und konfigurierbare Join-URL, vorbereiteter QR-Bereich, Live-Roster, Moduswahl, serverseitiges Start-Gate, Close-Bestätigung, Started-/Fehlerzustände sowie Komponenten- und Mehrclient-Playwright-Tests.
 
 ### A01.5 – Smartphone-Join und Lobby
 

@@ -109,18 +109,16 @@ export function createLobbySession(services: LobbyServices): CreateSessionResult
 function fingerprint(command: LobbyCommand | ConnectionCommand, services: LobbyServices): string {
   switch (command.type) {
     case 'join-player':
-      return JSON.stringify([command.type, command.expectedRevision, command.name])
+      return JSON.stringify([command.type, command.name])
     case 'reconnect-player':
       return JSON.stringify([
         command.type,
-        command.expectedRevision,
         command.playerId,
         services.reconnectTokens.digest(command.reconnectToken),
       ])
     case 'reconnect-host':
       return JSON.stringify([
         command.type,
-        command.expectedRevision,
         command.hostId,
         services.reconnectTokens.digest(command.reconnectToken),
       ])
@@ -157,6 +155,13 @@ function fingerprint(command: LobbyCommand | ConnectionCommand, services: LobbyS
         command.mode,
       ])
     case 'start-session':
+      return JSON.stringify([
+        command.type,
+        command.expectedRevision,
+        command.actor.hostId,
+        services.reconnectTokens.digest(command.actor.reconnectToken),
+      ])
+    case 'close-session':
       return JSON.stringify([
         command.type,
         command.expectedRevision,
@@ -453,6 +458,16 @@ function executeLobbyCommand(
         startedPlayerIds: connectedPlayers.map((player) => player.playerId),
       })
       return accept(nextSession, command.actionId, commandFingerprint)
+    }
+
+    case 'close-session': {
+      if (session.phase === 'closed') {
+        return rejectAndRemember(session, command.actionId, commandFingerprint, 'WRONG_PHASE')
+      }
+      if (!authenticateHost(session, command.actor, services)) {
+        return rejectAndRemember(session, command.actionId, commandFingerprint, 'NOT_AUTHORIZED')
+      }
+      return accept(withRevision(session, { phase: 'closed' }), command.actionId, commandFingerprint)
     }
   }
 }

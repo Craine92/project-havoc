@@ -108,13 +108,39 @@ Diese Fragen sind für Alpha 0.1 sowie Classic/Chaos nicht blockierend.
 6. Welche Geräte-/Browserkombinationen werden offiziell unterstützt?
 7. Benötigt ein Release Schutz gegen öffentliches Raumcode-Raten, Missbrauch und Denial of Service über lokale Grenzen hinaus?
 
-## Priorisierte Entscheidungen für Auftrag 004
+## Technischer Stand nach Auftrag 004
 
-Workspace, Node-Untergrenze, Validator, Token-Grundstrategie und neutraler Startzustand sind mit Auftrag 003 entschieden. Für Auftrag 004 bleiben folgende vorläufige Annahmen relevant:
+Workspace, Node-Untergrenze, Validator, Token-Grundstrategie und neutraler Startzustand wurden mit Auftrag 003 entschieden. Auftrag 004 setzt folgende konservative Alpha-Defaults um:
 
 - Moduswahl wird gespeichert, startet aber nur einen neutralen Platzhalterzustand.
 - Sitzungen sind zunächst In-Memory und überleben keinen Serverneustart.
 - Spieler- und Hostidentität beruhen auf servergenerierten, lokal gespeicherten Tokens.
 - Die Alpha wird zuerst im lokalen Heimnetz getestet, ohne Deployment.
+- Verbundene Räume werden nicht zeitbasiert entfernt; ohne Verbindungen gelten sechs Stunden Inaktivität, 30 Minuten Host-Verwaisung und fünf Minuten Closed-Retention.
+- Reconnect-Credentials gelten für die Lebenszeit des In-Memory-Raums und werden in dieser Alpha noch nicht rotiert.
+- Der Server läuft als einzelner Prozess; horizontale Skalierung und externe Socket.IO-Adapter bleiben offen.
 
 Gameplay-Konflikte bleiben bis Alpha 0.2 dokumentiert offen und dürfen in Auftrag 004 nicht implementiert werden.
+
+## Priorisierte Entscheidungen für Auftrag 005
+
+- Festlegen, wie TV und Controller die Serverbasis-URL im lokalen Netz erhalten.
+- Festlegen, welche exakten Development-Origins für die beiden Vite-Apps verwendet werden.
+- Entscheiden, ob Host-Credentials zunächst in `sessionStorage` oder raumspezifisch in `localStorage` aufbewahrt werden.
+- Definieren, wie die TV-Lobby einen dauerhaft verlorenen Hostzugang erklärt; eine Wiederherstellung ohne Token existiert nicht.
+
+## Technischer Stand nach Auftrag 005
+
+- Die TV-Lobby nutzt `sessionStorage` für Reload-Recovery innerhalb derselben Tab-Sitzung.
+- Server- und öffentliche Join-URL sind getrennt konfigurierbar; LAN-Adressen werden nicht automatisch geraten.
+- Die UI rendert ausschließlich validierte Server-Snapshots und serverseitige `allowedActions`.
+- Der QR-Bereich ist vorbereitet, enthält aber bewusst noch keinen generierten QR-Code.
+- Ein verlorenes oder ungültiges Hosttoken führt in einen expliziten Fehlerzustand; automatische Hostübernahme existiert nicht.
+
+## Priorisierte Entscheidungen für Auftrag 006
+
+- Konkreter Controller-Pfad und Deep-Link-Format für `VITE_PUBLIC_JOIN_URL`.
+- Raumspezifische Speicherung der Spieler-Credentials und Verhalten bei mehreren Räumen.
+- QR-Bibliothek beziehungsweise kleine lokale QR-Implementierung ohne externen Dienst.
+- Smartphone-Mindestbrowser und Ziel-Viewports 320, 390 und 430 Pixel.
+- Nutzerführung bei ungültigem Code, vollem Raum, doppeltem Namen und verlorenem Spieler-Credential.

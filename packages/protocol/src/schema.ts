@@ -16,6 +16,14 @@ export const playerNameInputSchema = z.string().min(1).max(64)
 export const roleSchema = z.enum(['display-host', 'player'])
 export const sessionPhaseSchema = z.enum(['lobby', 'started', 'closed'])
 export const gameModeSchema = z.enum(['classic', 'chaos'])
+export const allowedActionSchema = z.enum([
+  'player.rename',
+  'player.set-ready',
+  'room.set-mode',
+  'room.remove-player',
+  'room.start',
+  'room.close',
+])
 
 export const errorCodeSchema = z.enum([
   'INVALID_MESSAGE',
@@ -32,6 +40,8 @@ export const errorCodeSchema = z.enum([
   'STALE_REVISION',
   'ACTION_ID_CONFLICT',
   'INVALID_RECONNECT_TOKEN',
+  'RATE_LIMITED',
+  'PAYLOAD_TOO_LARGE',
   'INTERNAL_ERROR',
 ])
 
@@ -90,6 +100,10 @@ export const clientMessageSchema = z.discriminatedUnion('type', [
     ...actionMetadataShape,
     type: z.literal('room.start'),
   }).strict(),
+  z.object({
+    ...actionMetadataShape,
+    type: z.literal('room.close'),
+  }).strict(),
 ])
 
 export const publicPlayerViewSchema = z.object({
@@ -132,6 +146,7 @@ export const privateSessionViewSchema = z.object({
   players: z.array(publicPlayerViewSchema).max(8),
   startedPlayerIds: z.array(playerIdSchema).max(8),
   viewer: privateViewerSchema,
+  allowedActions: z.array(allowedActionSchema),
 }).strict()
 
 const issuedIdentitySchema = z.discriminatedUnion('role', [

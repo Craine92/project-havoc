@@ -1,20 +1,24 @@
-import { createServer } from 'node:http'
+import { createHavocServer } from './server.js'
 
-const DEFAULT_PORT = 3000
-const configuredPort = Number.parseInt(process.env.PORT ?? '', 10)
-const port = Number.isInteger(configuredPort) && configuredPort > 0 ? configuredPort : DEFAULT_PORT
+const server = createHavocServer()
 
-const server = createServer((request, response) => {
-  if (request.method === 'GET' && request.url === '/health') {
-    response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' })
-    response.end(JSON.stringify({ status: 'ok' }))
-    return
-  }
+async function shutdown(signal: string): Promise<void> {
+  console.info(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', event: 'shutdown.requested', signal }))
+  await server.stop()
+}
 
-  response.writeHead(404, { 'content-type': 'application/json; charset=utf-8' })
-  response.end(JSON.stringify({ error: 'not-found' }))
+process.once('SIGINT', () => { void shutdown('SIGINT') })
+process.once('SIGTERM', () => { void shutdown('SIGTERM') })
+
+server.start().catch((error: unknown) => {
+  console.error(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level: 'error',
+    event: 'server.start_failed',
+    detail: error instanceof Error ? error.message : 'unknown error',
+  }))
+  process.exitCode = 1
 })
 
-server.listen(port, '127.0.0.1', () => {
-  console.info(`Project Havoc server listening on http://127.0.0.1:${port}`)
-})
+export { createHavocServer } from './server.js'
+export type { HavocServer, HavocServerOptions, StartedServer } from './server.js'

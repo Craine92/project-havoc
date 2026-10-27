@@ -271,3 +271,61 @@ Ein Regelmodul soll eine kleine, stabile Schnittstelle erfüllen, beispielsweise
 - Vitest für Domänen-/Vertragstests und vorbereitete Playwright-Konfiguration ohne künstliche UI-Tests
 
 Der dokumentierte Zwischenzustand `STARTING` wird in Alpha 0.1A nicht als beobachtbarer Zustand gespeichert: Der reine Start-Command besitzt noch keine asynchrone Arbeit und wechselt atomar von `lobby` in den neutralen Zustand `started`. Sobald eine spätere Startsequenz tatsächlich mehrere fehlbare Schritte besitzt, wird ein eigener Zwischenzustand erneut bewertet.
+
+## Implementierter Stand Alpha 0.1B
+
+`apps/server` stellt nun einen kontrolliert start- und stoppbaren HTTP-/Socket.IO-Server bereit. Alle Clientdaten laufen als versioniertes `client.message` durch die Zod-Schemas aus `packages/protocol`; Antworten und vollständige Snapshots werden als `server.message` gesendet. Der Netzwerkadapter bildet Nachrichten ausschließlich auf Commands aus `packages/game-core` ab und enthält keine zweite Lobbyregelimplementierung.
+
+### Autoritativer Ablauf
+
+1. Der Dispatcher validiert Größe, Protokollform und Rate Limit.
+2. Create, Join oder Reconnect ordnet den Socket einer stabilen Host-/Spieleridentität zu.
+3. Eine Warteschlange je Raum serialisiert den Command. Verschiedene Räume verwenden unabhängige Warteschlangen.
+4. Die Domäne prüft Identität, Rolle, Revision, Aktions-ID und Lobbyregel.
+5. Auch abgelehnte Resultate werden atomar gespeichert, weil sie Teil der Idempotenzhistorie sind.
+6. Nur die anfragende Verbindung erhält neue Credentials; alle Raumteilnehmer erhalten anschließend ihre eigene private Projektion.
+
+Join und Reconnect sind Mitgliedschaftsoperationen: Der Client kennt die aktuelle Revision vor erfolgreicher Bindung nicht zuverlässig. Der Dispatcher setzt deshalb für diese beiden Operationen innerhalb der Raumwarteschlange die aktuelle Serverrevision ein. Normale authentifizierte Aktionen müssen weiterhin exakt die letzte empfangene Revision tragen.
+
+### Raumrepository und Lebenszyklus
+
+Das In-Memory-Repository indiziert Räume nach zufälliger interner ID und kryptografisch erzeugtem sechsstelligen Raumcode. Kollisionen werden vor dem Einfügen erkannt und mit einem neuen Aggregat wiederholt. Standardwerte:
+
+- aktive Verbindungen verhindern jede zeitbasierte Bereinigung,
+- inaktive Räume ohne Verbindungen: sechs Stunden,
+- verwaiste Räume mit getrenntem Host und ohne Verbindungen: 30 Minuten,
+- geschlossene Räume: fünf Minuten,
+- Bereinigungsintervall: eine Minute.
+
+Ein Host kann einen Raum explizit schließen. Nach dem finalen Snapshot trennt der Server dessen Sockets und entfernt den Raum nach der Closed-Retention. Shutdown beendet Socket-Verbindungen und Timer und leert das Repository. Prozessneustarts verlieren sämtliche Räume absichtlich.
+
+### Reconnect und Snapshotgrenzen
+
+Socket-IDs bleiben flüchtig. Der Server bindet eine Verbindung an Raum, Rolle und stabile Identität. Ein gültiges HMAC-Credential kann eine neue Verbindung binden; eine ältere Verbindung derselben Identität wird ersetzt, ohne den Sitz zwischenzeitlich als getrennt zu markieren. Reconnect erzeugt keinen neuen Spieler und sendet immer einen vollständigen privaten Snapshot. Roh-Tokens werden nur bei Create/Join an den Berechtigten ausgegeben, Digests und Deduplizierungsdaten werden nie projiziert.
+
+### Transport- und Missbrauchsgrenzen
+
+Die Defaults begrenzen Verbindungsversuche auf 30 pro Minute und IP, Raumerstellungen auf fünf pro Minute und IP, Join-/Reconnect-Versuche auf 20 pro Minute und IP, Aktionen auf 40 pro zehn Sekunden und Socket sowie ungültige Nachrichten auf zehn pro zehn Sekunden und IP. Nachrichten sind auf 16 KiB begrenzt. Produktions-CORS akzeptiert nur konfigurierte exakte Origins; `*` ist ungültig. Strukturierte Logs enthalten Ereignis, Raum-/Socket-Korrelation und Fehlercode, aber keine Tokens oder Payloads.
+
+## Implementierter Stand Alpha 0.1C
+
+`apps/tv` ist nun ein echter React-/Vite-Client des autoritativen Servers. Der Client zeigt keine Demo- oder Fakedaten: Raumcode, Spieler, Ready-/Verbindungsstatus, Modus, Revision und erlaubte Aktionen stammen vollständig aus validierten `session.snapshot`-Nachrichten.
+
+### TV-Clientadapter
+
+- Eine Hook kapselt Socket-Erzeugung, Handlerregistrierung, Action-IDs, Protokollvalidierung, Verbindungszustände und Cleanup.
+- Verändernde Aktionen werden einmalig als Clientabsicht gesendet und nicht unkontrolliert wiederholt.
+- Modus und Phase ändern sich in der UI erst durch einen autoritativen Snapshot.
+- `STALE_REVISION` löst genau eine kontrollierte Verbindungswiederherstellung mit Vollsnapshot aus.
+- Reload-Recovery verwendet das bestehende Host-Credential; ein neuer Socket erhält nach erfolgreicher Prüfung den vollständigen Hostsnapshot.
+- `allowedActions` steuert Modus-, Start- und Close-Bedienbarkeit. Die Domänenprojektion berechnet das Startrecht aus verbundenen, bereiten Spielern; React dupliziert diese Regel nicht.
+
+### Speicherung und Konfiguration
+
+Host-ID, Raumbezug, Token und letzte Revision liegen in `sessionStorage`. Das begrenzt die Persistenz auf die Tab-Sitzung und unterstützt Reload, schützt aber nicht vor Scripts innerhalb desselben Origins. Bei Raumende, ungültiger Sitzung oder verlorener Hostberechtigung werden die Daten entfernt.
+
+`VITE_HAVOC_SERVER_URL` bestimmt den Browser-Socket-Endpunkt. Ohne Angabe verwendet der Client den aktuellen Seitenhostname auf Port 3000. `VITE_PUBLIC_JOIN_URL` ist bewusst separat: Nur der Betreiber kennt die aus dem Smartphone erreichbare LAN-Adresse. Fehlt sie, bleibt die URL korrekt kodiert, wird aber sichtbar als nicht LAN-konfiguriert markiert. Der QR-Bereich ist lediglich eine semantische Vorbereitung und generiert noch keinen Code.
+
+### Darstellung und Zugänglichkeit
+
+Die TV-Lobby verwendet lokale CSS-/SVG-Mittel ohne externe Bild- oder Schriftabhängigkeit. Zielauflösungen 1920×1080, 1366×768 und 1280×720 werden durch Playwright auf horizontalen Überlauf und sichtbare Hostaktionen geprüft. Kleine Ansichten dürfen vertikal scrollen. Fokusmarkierungen, semantische Statusmeldungen, Dialogrollen und `prefers-reduced-motion` sind berücksichtigt.

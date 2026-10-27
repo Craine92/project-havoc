@@ -61,6 +61,15 @@ describe('client protocol validation', () => {
 
     expect(result.success).toBe(false)
   })
+
+  it('accepts the host close action', () => {
+    expect(validateClientMessage({
+      version: PROTOCOL_VERSION,
+      type: 'room.close',
+      actionId,
+      expectedRevision: 7,
+    }).success).toBe(true)
+  })
 })
 
 describe('server protocol validation', () => {
@@ -95,5 +104,18 @@ describe('server protocol validation', () => {
     })
 
     expect(result.success).toBe(false)
+  })
+
+  it('accepts a private snapshot with role-specific allowed actions', () => {
+    expect(validateServerMessage({
+      version: PROTOCOL_VERSION,
+      type: 'session.snapshot',
+      session: {
+        ...publicSession,
+        visibility: 'private',
+        viewer: { role: 'display-host', hostId: 'host_12345678' },
+        allowedActions: ['room.set-mode', 'room.remove-player', 'room.start', 'room.close'],
+      },
+    }).success).toBe(true)
   })
 })

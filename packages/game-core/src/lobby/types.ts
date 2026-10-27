@@ -141,6 +141,7 @@ export type LobbyCommand =
   | (CommandMetadata & { readonly type: 'select-mode'; readonly actor: HostActor; readonly mode: GameMode })
   | (CommandMetadata & { readonly type: 'remove-player'; readonly actor: HostActor; readonly playerId: PlayerId })
   | (CommandMetadata & { readonly type: 'start-session'; readonly actor: HostActor })
+  | (CommandMetadata & { readonly type: 'close-session'; readonly actor: HostActor })
 
 export type ConnectionCommand =
   | (CommandMetadata & { readonly type: 'disconnect-player'; readonly playerId: PlayerId })
@@ -194,6 +195,14 @@ export interface PublicLobbyProjection {
 
 export type PrivateLobbyProjection = Omit<PublicLobbyProjection, 'visibility'> & {
   readonly visibility: 'private'
+  readonly allowedActions: readonly (
+    | 'player.rename'
+    | 'player.set-ready'
+    | 'room.set-mode'
+    | 'room.remove-player'
+    | 'room.start'
+    | 'room.close'
+  )[]
   readonly viewer:
     | { readonly role: 'display-host'; readonly hostId: HostId }
     | { readonly role: 'player'; readonly playerId: PlayerId }

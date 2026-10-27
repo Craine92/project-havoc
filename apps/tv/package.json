@@ -13,6 +13,7 @@
     "@project-havoc/protocol": "*",
     "@project-havoc/ui": "*",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "socket.io-client": "^4.8.4"
   }
 }

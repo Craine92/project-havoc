@@ -234,6 +234,86 @@ Dieses Dokument ist ein leichtgewichtiges Entscheidungsprotokoll. Der Status lau
 
 **Verworfene Alternativen:** Ein sofort wieder verlassener `starting`-Status ohne fachlich mögliche Beobachtung.
 
+## D-024 – Ein versioniertes Socket.IO-Nachrichtenpaar
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** Clients senden ausschließlich `client.message`; der Server sendet ausschließlich `server.message`. Der Nachrichtentyp im validierten Payload bestimmt die konkrete Aktion oder Antwort.
+
+**Begründung:** Eine zentrale Vertrauensgrenze erzwingt Größen-, Versions- und Schemavalidierung konsistent. Neue Aktionen benötigen keine parallel gepflegte Socket-Eventtypisierung.
+
+**Verworfene Alternativen:** Ein unvalidiertes Socket-Event pro Aktion; Transporttypen direkt in `game-core`.
+
+## D-025 – Serielle Warteschlange je Raum
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** Jeder Raum besitzt eine unabhängige Promise-Warteschlange. Der Dispatcher liest, verarbeitet und speichert ein Domänenresultat innerhalb derselben seriellen Operation; verschiedene Räume blockieren einander nicht.
+
+**Begründung:** Damit können konkurrierende Smartphone-Aktionen keinen Zustand überschreiben, während die kleine lokale Alpha keine globale Queue oder externe Lock-Infrastruktur benötigt.
+
+**Verworfene Alternativen:** Globale Serverwarteschlange; ungeschützte nebenläufige Mutation; Datenbanklock ohne Datenbankbedarf.
+
+## D-026 – Konservative In-Memory-Retention
+
+**Status:** Entschieden für Alpha 0.1B
+
+**Entscheidung:** Verbundene Räume werden nie zeitbasiert entfernt. Ohne Verbindungen gelten sechs Stunden Inaktivität, 30 Minuten für verwaiste Host-Sitzungen und fünf Minuten nach explizitem Schließen. Alle Werte sind konfigurierbar.
+
+**Begründung:** Aktive Runden bleiben sicher erhalten; lokale Entwicklungsprozesse geben verlassenen Speicher dennoch automatisch frei.
+
+**Verworfene Alternativen:** Unbegrenzte Aufbewahrung; Bereinigung trotz aktiver Verbindungen; Datenbankpersistenz in Alpha 0.1B.
+
+## D-027 – Transportseitige Revision für Mitgliedschaftsoperationen
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** Join und Reconnect werden innerhalb der Raumwarteschlange mit der aktuellen Serverrevision an die Domäne übergeben. Authentifizierte Folgebefehle müssen die vom Client zuletzt empfangene Revision exakt angeben.
+
+**Begründung:** Ein noch nicht gebundener oder gerade getrennter Client kann die durch andere Teilnehmer beziehungsweise seinen Disconnect erhöhte Revision nicht zuverlässig kennen. Idempotenz bleibt über die Aktions-ID erhalten; normale konkurrierende Änderungen bleiben strikt revisionsgeschützt.
+
+**Verworfene Alternativen:** Reconnect mit zwangsläufig veralteter Revision ablehnen; Revisionsprüfung für alle Befehle abschalten.
+
+## D-028 – Additive Erweiterung der unveröffentlichten Protokollversion 1
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** Protokollversion 1 erhält vor dem ersten UI-Client die Aktion `room.close`, rollenbezogene `allowedActions` und die Fehlercodes `RATE_LIMITED` sowie `PAYLOAD_TOO_LARGE`.
+
+**Begründung:** Es existiert noch kein veröffentlichter oder unterstützter Client. Ein Versionssprung würde daher keine reale Kompatibilitätsgrenze schützen; ab Auftrag 005 gelten diese Schemas als Clientvertrag.
+
+**Verworfene Alternativen:** Eine Version 2 ohne existierenden Version-1-Verbraucher; Transportfehler außerhalb des Protokolls.
+
+## D-029 – Tab-begrenzte Host-Credentials
+
+**Status:** Entschieden für Alpha 0.1C
+
+**Entscheidung:** Der TV speichert Host-Credentials und die letzte bekannte Revision in `sessionStorage`, nicht in `localStorage`, URL oder Cookie.
+
+**Begründung:** Ein Reload kann dieselbe Sitzung wiederherstellen, während das Credential nach dem Ende der Browser-Tab-Sitzung nicht dauerhaft verbleibt. Der Server bleibt für jede Wiederverbindung prüfende Autorität.
+
+**Verworfene Alternativen:** Token in der Join-URL; nur flüchtiger React-Zustand ohne Reload; langfristiges `localStorage` ohne bestätigten Produktbedarf.
+
+## D-030 – Explizite öffentliche Join-URL
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** Serverendpunkt und öffentliche Controller-Join-Basis sind getrennte Vite-Konfigurationen. Der Client errät keine LAN-IP und zeigt fehlende Join-Konfiguration sichtbar an.
+
+**Begründung:** `localhost` verweist auf einem Smartphone auf das Smartphone. Mehrere Adapter, VPNs und Firewalls verhindern eine verlässliche sichere Browser-Autodetektion.
+
+**Verworfene Alternativen:** Fest codierte private IP; automatische Veröffentlichung; stillschweigende Anzeige einer wahrscheinlich unerreichbaren URL.
+
+## D-031 – Autoritative UI ohne optimistische Lobbyänderung
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** Modus, Roster, Ready, Start und Raumphase werden ausschließlich aus Server-Snapshots gerendert. Die UI markiert eine Anfrage als ausstehend, verändert den fachlichen Zustand aber nicht vor Bestätigung.
+
+**Begründung:** Ablehnungen und konkurrierende Aktionen bleiben sichtbar konsistent; Geschäftsregeln und `allowedActions` leben in der Domänenprojektion.
+
+**Verworfene Alternativen:** Lokale Modusumschaltung mit späterem Rollback; im React-Code duplizierte Startregeln.
+
 ## Offene technische Entscheidungen
 
 | ID | Frage | Benötigt vor |
