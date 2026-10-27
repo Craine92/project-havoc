@@ -114,10 +114,20 @@ describe('TV lobby components', () => {
 
   it('renders the neutral started screen without gameplay', () => {
     render(<StartedScreen model={model({
-      session: session({ phase: 'started', startedPlayerIds: ['player_component_01', 'player_component_02'], allowedActions: ['room.close'] }),
+      session: session({
+        phase: 'started',
+        players: [
+          { playerId: 'player_component_01', name: 'Nova', seat: 1, connected: true, ready: true },
+          { playerId: 'player_component_02', name: 'Mira', seat: 2, connected: true, ready: true },
+        ],
+        startedPlayerIds: ['player_component_01', 'player_component_02'],
+        allowedActions: ['room.close'],
+      }),
     })} />)
 
     expect(screen.getByRole('heading', { name: /portal ist offen/i })).toBeTruthy()
     expect(screen.getByText(/2 spieler sind bereit/i)).toBeTruthy()
+    expect(screen.getByText('Nova')).toBeTruthy()
+    expect(screen.getByText('Mira')).toBeTruthy()
   })
 })

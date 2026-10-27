@@ -166,6 +166,8 @@ Nicht enthalten: Kartendeck, Kartenaktionen, Classic-Züge, Chaos-Karten, Ereign
 
 ### A01.5 – Smartphone-Join und Lobby
 
+**Status:** In Auftrag 006 umgesetzt
+
 **Abhängigkeiten:** A01.2 und A01.3
 
 **Lieferumfang:**
@@ -186,6 +188,8 @@ Nicht enthalten: Kartendeck, Kartenaktionen, Classic-Züge, Chaos-Karten, Ereign
 - abgelaufene oder widerrufene Berechtigungen führen in einen verständlichen Join-Zustand.
 
 **Tests:** UI-Tests für Name/Ready/Fehler; Playwright auf 320-, 390- und 430-Pixel-Viewports; Reconnect-Integration.
+
+**Umsetzung:** QR-/Deep-Link-Join, manuelle Codeeingabe, geteilte Namensvalidierung, private Spieleransicht, Ready/Rename, raumspezifischer Reconnect, Started-/Closed-Zustände, vier Smartphone-Breiten und reale Mehrbrowser-Tests bis acht Spieler.
 
 ### A01.6 – Mehrclient-E2E und Stabilisierung
 

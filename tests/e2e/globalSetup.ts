@@ -13,7 +13,7 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
     ...loadServerConfig({
       NODE_ENV: 'test',
       RECONNECT_TOKEN_SECRET: 'project-havoc-e2e-only-secret-with-32-bytes',
-      CORS_ORIGINS: 'http://127.0.0.1:4311',
+      CORS_ORIGINS: 'http://127.0.0.1:4311,http://127.0.0.1:4312',
     }),
     host: '127.0.0.1',
     port: 4310,
@@ -33,14 +33,25 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
     logLevel: 'error',
     server: { host: '127.0.0.1', port: 4311, strictPort: true },
   })
+  const controllerRoot = fileURLToPath(new URL('../../apps/controller', import.meta.url))
+  const controller = await createViteServer({
+    root: controllerRoot,
+    mode: 'e2e',
+    logLevel: 'error',
+    server: { host: '127.0.0.1', port: 4312, strictPort: true },
+  })
   try {
     await frontend.listen()
+    await controller.listen()
   } catch (error: unknown) {
+    await controller.close()
+    await frontend.close()
     await backend.stop()
     throw error
   }
 
   return async () => {
+    await controller.close()
     await frontend.close()
     await backend.stop()
   }

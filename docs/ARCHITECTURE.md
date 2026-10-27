@@ -329,3 +329,13 @@ Host-ID, Raumbezug, Token und letzte Revision liegen in `sessionStorage`. Das be
 ### Darstellung und Zugänglichkeit
 
 Die TV-Lobby verwendet lokale CSS-/SVG-Mittel ohne externe Bild- oder Schriftabhängigkeit. Zielauflösungen 1920×1080, 1366×768 und 1280×720 werden durch Playwright auf horizontalen Überlauf und sichtbare Hostaktionen geprüft. Kleine Ansichten dürfen vertikal scrollen. Fokusmarkierungen, semantische Statusmeldungen, Dialogrollen und `prefers-reduced-motion` sind berücksichtigt.
+
+## Implementierter Stand Alpha 0.1D
+
+`apps/controller` ist ein echter Smartphone-Client mit Deep-Link-/Code-Join, gemeinsamer serverseitiger Namensregel, Live-Lobby, Rename, Ready, Reload-Reconnect und neutralem Started-/Closed-Zustand. Der Controller rendert ausschließlich private validierte Spielerprojektionen und sendet nur Aktionen aus `allowedActions`; Hostaktionen sind weder verfügbar noch transportseitig autorisiert.
+
+Spieler-Credentials werden nach Raumcode getrennt in `localStorage` gespeichert, damit ein Smartphone-Browser auch nach Reload beziehungsweise erneutem Öffnen zum selben Sitz zurückkehren kann. Bei ungültiger Berechtigung oder geschlossenem Raum wird der zugehörige Eintrag entfernt. Diese Speicherung widersteht keinem XSS innerhalb desselben Origins und wird daher zusammen mit der Origin-Vertrauensgrenze dokumentiert.
+
+Der TV erzeugt den QR-Code mit `qrcode` vollständig lokal als Data-URL. Sein einziger Inhalt ist die konfigurierte öffentliche Join-URL einschließlich `room`-Parameter; Host- und Spieler-Credentials sind ausgeschlossen. Das QR-Modul wird bei jeder neuen Join-URL neu erzeugt.
+
+TV und Controller behalten getrennte React-Hooks. Eine gemeinsame Transportabstraktion wurde geprüft, aber nicht eingeführt: Protokollvalidierung ist bereits geteilt, während Rollenbindung, Credential-Speicherung, Fehlerfolgen und UI-Lebenszyklen verschieden sind. Eine weitere Abstraktion hätte gegenwärtig mehr Verzweigungen als entfernte Duplikation.

@@ -244,8 +244,8 @@ button { color: inherit; }
 .join-panel__hint { max-width: 20rem; margin: .45rem 0 .75rem; color: var(--muted); font-size: .78rem; line-height: 1.5; }
 .join-url { display: block; width: 100%; overflow: hidden; color: var(--cyan); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
 .lan-warning { margin: .6rem 0 0; color: #d6ae75; font-size: .67rem; line-height: 1.4; }
-.qr-placeholder { display: grid; width: min(100%, 12rem); aspect-ratio: 1; margin: auto 0 0; place-items: center; border: 1px dashed rgba(157,92,255,.35); border-radius: 1rem; color: #716b7d; background: rgba(157,92,255,.025); font: 600 .7rem/1.5 Rajdhani, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-.qr-placeholder svg { width: 45%; fill: none; stroke: rgba(157,92,255,.5); stroke-width: 4; }
+.qr-code { display: grid; width: min(100%, 12rem); aspect-ratio: 1; margin: auto 0 0; padding: .55rem; place-items: center; border: 1px solid rgba(157,92,255,.35); border-radius: 1rem; color: #8e879b; background: #fff; box-shadow: 0 0 32px rgba(157,92,255,.12); font: 600 .65rem/1.4 Rajdhani, sans-serif; text-align: center; }
+.qr-code img { display: block; width: 100%; height: 100%; border-radius: .45rem; image-rendering: pixelated; }
 
 .roster-panel { min-height: 0; padding: clamp(1rem, 1.5vw, 1.5rem); }
 .section-heading { display: flex; min-height: 3rem; margin-bottom: 1rem; align-items: center; justify-content: space-between; }
@@ -304,6 +304,7 @@ button { color: inherit; }
 .state-screen__rune--dim { color: #777080; border-color: rgba(255,255,255,.1); background: rgba(255,255,255,.025); box-shadow: none; animation: none; }
 .state-screen h1 { margin-top: .65rem; font-size: clamp(3rem, 6vw, 6rem); }
 .state-screen .connection-badge { margin-top: 1.5rem; }
+.started-players { display:flex;max-width:52rem;flex-wrap:wrap;justify-content:center;gap:.55rem }.started-players span{padding:.55rem .85rem;border:1px solid rgba(157,92,255,.25);border-radius:999px;color:#d8c7ef;background:rgba(157,92,255,.07);font:700 .72rem Bahnschrift,sans-serif;text-transform:uppercase}
 
 @keyframes orbit { to { transform: rotate(360deg); } }
 @keyframes pulse { 50% { transform: scale(1.04); filter: brightness(1.2); } }
@@ -314,7 +315,7 @@ button { color: inherit; }
   .lobby-layout { min-height: calc(100vh - 5.5rem); grid-template-columns: minmax(230px, .78fr) minmax(490px, 2fr) minmax(280px, .95fr); gap: .65rem; }
   .join-panel, .roster-panel, .mode-panel { padding: .9rem; }
   .room-code { font-size: clamp(2.75rem, 4vw, 4.25rem); }
-  .qr-placeholder { width: 9rem; }
+  .qr-code { width: 9rem; }
   .player-grid { gap: .45rem; }
   .player-card { padding: .5rem .6rem; }
   .launch-panel { padding: .65rem .8rem; }
@@ -335,7 +336,7 @@ button { color: inherit; }
   .lobby-header__meta { align-items: flex-end; flex-direction: column; gap: .5rem; }
   .lobby-layout { display: flex; min-height: 0; flex-direction: column; }
   .join-panel { min-height: 440px; }
-  .qr-placeholder { margin-top: 1.5rem; }
+  .qr-code { margin-top: 1.5rem; }
   .roster-panel { min-height: 580px; }
   .launch-panel { align-items: stretch; flex-direction: column; }
   .launch-actions { justify-content: stretch; }

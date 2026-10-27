@@ -4,6 +4,7 @@ import type { PrivateSessionView } from '@project-havoc/protocol'
 
 import type { ConnectionState, TvLobbyModel } from './types.js'
 import { useTvLobby } from './useTvLobby.js'
+import { QrCode } from './QrCode.js'
 
 const VERSION = `Alpha 0.1C · Protokoll 1`
 
@@ -145,13 +146,7 @@ export function LobbyScreen({ model }: { readonly model: TvLobbyModel }): React.
           <p className="join-panel__hint">Auf dem Smartphone öffnen und Code eingeben</p>
           <a className="join-url" href={model.joinUrl ?? undefined}>{model.joinUrl}</a>
           {model.joinUrlWarning && <p className="lan-warning">{model.joinUrlWarning}</p>}
-          <div className="qr-placeholder" aria-label="QR-Code folgt in Auftrag 006">
-            <svg viewBox="0 0 100 100" aria-hidden="true">
-              <path d="M4 30V4h26M70 4h26v26M96 70v26H70M30 96H4V70" />
-              <path d="M36 36h10v10H36zm18 0h10v10H54zM36 54h10v10H36zm18 0h10v10H54z" />
-            </svg>
-            <span>QR-Portal<br />wird vorbereitet</span>
-          </div>
+          {model.joinUrl && <QrCode value={model.joinUrl} />}
         </aside>
 
         <section className="roster-panel panel">
@@ -234,13 +229,18 @@ export function LobbyScreen({ model }: { readonly model: TvLobbyModel }): React.
 }
 
 export function StartedScreen({ model }: { readonly model: TvLobbyModel }): React.JSX.Element {
+  const session = model.session
+  const startedPlayers = session?.players.filter((player) => session.startedPlayerIds.includes(player.playerId)) ?? []
   return (
     <main className="state-screen state-screen--started">
       <Brand />
       <div className="state-screen__rune" aria-hidden="true">✦</div>
       <span className="panel-label">Sitzung gestartet</span>
       <h1>Das Portal ist offen.</h1>
-      <p>{model.session?.startedPlayerIds.length ?? 0} Spieler sind bereit. Das eigentliche Gameplay folgt in einer späteren Alpha.</p>
+      <p><strong>{session?.selectedMode?.toUpperCase() ?? 'CLASSIC'}</strong> · {startedPlayers.length} Spieler sind bereit. Das eigentliche Gameplay folgt in einer späteren Alpha.</p>
+      <div className="started-players" aria-label="Gestartete Spieler">
+        {startedPlayers.map((player) => <span key={player.playerId}>{player.name}</span>)}
+      </div>
       <ConnectionBadge state={model.connection} />
     </main>
   )

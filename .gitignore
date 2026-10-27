@@ -11,6 +11,7 @@ blob-report/
 .env.*
 !.env.example
 !apps/tv/.env.e2e
+!apps/controller/.env.e2e
 *.local
 
 *.log

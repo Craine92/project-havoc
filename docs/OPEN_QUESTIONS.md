@@ -144,3 +144,18 @@ Gameplay-Konflikte bleiben bis Alpha 0.2 dokumentiert offen und dürfen in Auftr
 - QR-Bibliothek beziehungsweise kleine lokale QR-Implementierung ohne externen Dienst.
 - Smartphone-Mindestbrowser und Ziel-Viewports 320, 390 und 430 Pixel.
 - Nutzerführung bei ungültigem Code, vollem Raum, doppeltem Namen und verlorenem Spieler-Credential.
+
+## Technischer Stand nach Auftrag 006
+
+- Controller-Deep-Link verwendet den Queryparameter `room`; manuelle Eingabe bleibt möglich.
+- QR-Codes entstehen lokal und enthalten keine Credentials.
+- Spieler-Credentials liegen raumspezifisch in `localStorage` und werden bei invalidem Token oder Raumende entfernt.
+- Zielbreiten 320, 375, 390 und 430 Pixel sind automatisiert geprüft.
+- TV, zwei getrennte Smartphone-Kontexte und ein Acht-Spieler-Beitritt sind mit dem echten Server getestet.
+
+## Priorisierte Entscheidungen für Auftrag 007
+
+- Ob A01.6 zunächst als Hardware-/Netzwerkstabilisierung oder bereits als Einstieg in Alpha 0.2 Classic geschnitten wird.
+- Verbindliche Browser-/Gerätematrix und reales TV-/Smartphone-Abnahmeprotokoll.
+- HTTPS-Strategie im Heimnetz und Umgang mit iOS-/Android-Browserbeschränkungen.
+- Aufbewahrungsdauer und Rotation von Host-/Spieler-Credentials vor länger laufenden Tests.

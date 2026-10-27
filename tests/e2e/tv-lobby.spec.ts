@@ -116,7 +116,9 @@ test('shows the connected start screen and creates a real room', async ({ page }
   const code = await openRoom(page)
   expect(code).toMatch(/^[A-HJ-NP-Z2-9]{6}$/)
   await expect(page.getByRole('link', { name: new RegExp(code) })).toHaveAttribute('href', new RegExp(`4312.*room=${code}`))
-  await expect(page.getByText(/QR-Portal/i)).toBeVisible()
+  const qr = page.locator('.qr-code')
+  await expect(qr).toHaveAttribute('data-qr-value', new RegExp(`room=${code}`))
+  await expect(qr.getByRole('img')).toHaveAttribute('src', /^data:image\/png;base64,/)
 })
 
 test('shows a clear unavailable-server state', async ({ page }) => {

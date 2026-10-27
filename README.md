@@ -1,6 +1,6 @@
 # Project Havoc
 
-Project Havoc is a browser-based local multiplayer party game. Alpha 0.1C provides a strict TypeScript monorepo, a versioned protocol, an authoritative Socket.IO server, and the first fully interactive TV lobby. The smartphone controller remains intentionally unimplemented.
+Project Havoc is a browser-based local multiplayer party game. Alpha 0.1D provides a versioned authoritative Socket.IO server, an interactive TV lobby, locally generated QR joins, and a complete smartphone controller.
 
 ## Requirements and installation
 
@@ -60,7 +60,15 @@ npm run dev:server
 npm run dev:tv -- --host 0.0.0.0
 ```
 
-The join URL is displayed and correctly encoded, but its controller destination becomes usable only after Auftrag 006. The TV shows a warning when `VITE_PUBLIC_JOIN_URL` is absent; it never guesses or exposes a private network address.
+The join URL is displayed, encoded into a locally generated QR code, and opens the controller with the room code prefilled. The TV shows a warning when `VITE_PUBLIC_JOIN_URL` is absent; it never guesses or exposes a private network address.
+
+## Run the smartphone controller
+
+```powershell
+npm run dev:controller -- --host 0.0.0.0 --port 5174
+```
+
+Set `VITE_HAVOC_SERVER_URL` in `apps/controller/.env.local` for LAN use. The complete three-terminal Windows procedure and hardware test checklist are in [MANUAL_MULTIPLAYER_TEST.md](docs/MANUAL_MULTIPLAYER_TEST.md).
 
 ## Wire flow
 
@@ -106,7 +114,7 @@ Current browser constraints: a modern ES2022-capable browser, WebSocket support,
 apps/
   server/       HTTP + Socket.IO authority
   tv/           interactive React/Vite TV lobby
-  controller/   empty React/Vite shell
+  controller/   interactive React/Vite smartphone controller
 packages/
   protocol/     versioned wire schemas
   game-core/    transport-free lobby domain

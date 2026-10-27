@@ -314,6 +314,36 @@ Dieses Dokument ist ein leichtgewichtiges Entscheidungsprotokoll. Der Status lau
 
 **Verworfene Alternativen:** Lokale Modusumschaltung mit späterem Rollback; im React-Code duplizierte Startregeln.
 
+## D-032 – Lokale QR-Erzeugung
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** Der TV erzeugt QR-Codes mit der kleinen Bibliothek `qrcode` lokal im Browser. Der Payload ist ausschließlich die vollständige öffentliche Join-URL mit Raumcode.
+
+**Begründung:** Es gibt keinen externen Dienst, kein Tracking und kein Netzwerkleck. Kontrast und Fehlerkorrektur sind kontrollierbar.
+
+**Verworfene Alternativen:** Externe QR-API; eigenes QR-Encoding; Credential im QR-Payload.
+
+## D-033 – Raumspezifische Spieler-Credentials in localStorage
+
+**Status:** Entschieden für Alpha 0.1D
+
+**Entscheidung:** Controller speichern Reconnect-Daten unter einem versionierten, raumspezifischen Schlüssel in `localStorage` und entfernen sie bei invalidem Token oder Raumende.
+
+**Begründung:** Smartphone-Reload und erneutes Öffnen sollen denselben Sitz wiederherstellen. Die stärkere Persistenz gegenüber `sessionStorage` ist für den mobilen Scan-Flow nützlich und wird als XSS-Risiko dokumentiert.
+
+**Verworfene Alternativen:** Token in URL; Name als Identität; ausschließlich flüchtiger Zustand.
+
+## D-034 – Noch kein gemeinsames Client-Framework
+
+**Status:** Entschieden
+
+**Entscheidung:** TV und Controller teilen Protokollschemas, aber vorerst keinen generischen Socket-/React-Client. Rollenablauf, Speicherung und Fehlerreaktionen bleiben explizite Hooks je App.
+
+**Begründung:** Die sichtbare Ähnlichkeit beschränkt sich auf Socket.IO-Grundoperationen. Eine generische Zustandsmaschine müsste fast alle relevanten Verhaltensweisen wieder rollenabhängig konfigurieren.
+
+**Verworfene Alternativen:** Vorsorgliches `client-core`-Framework ohne dritten Verbraucher; Copy/Paste der Protokollschemas.
+
 ## Offene technische Entscheidungen
 
 | ID | Frage | Benötigt vor |
