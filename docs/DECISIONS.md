@@ -124,6 +124,76 @@ Dieses Dokument ist ein leichtgewichtiges Entscheidungsprotokoll. Der Status lau
 
 **Verworfene Alternativen:** Ein universelles Komponentenpaket vor Entwicklung der ersten Ansichten.
 
+## D-013 – Classic und Chaos als bestätigter Zielkern
+
+**Status:** Entschieden für Alpha-Planung
+
+**Entscheidung:** Project Havoc plant zunächst Classic und Chaos. Der in Rune Riot zusätzlich vorhandene `mercy`-Bestandspfad ist kein stillschweigender dritter Zielmodus.
+
+**Begründung:** Auftrag 002 fordert ausdrücklich Classic und Chaos. Der Mercy-Pfad enthält mehrere dokumentarische Konflikte und würde Umfang sowie Regelrisiko vergrößern.
+
+**Verworfene Alternativen:** Alle drei Referenzregeln ungeprüft übernehmen.
+
+## D-014 – Gemeinsamer Basiskartenkern, getrennte Moduskomposition
+
+**Status:** Entschieden
+
+**Entscheidung:** Gemeinsame Karten-, Zug- und +4-Regeln liegen in `game-core`. Classic und Chaos konfigurieren beziehungsweise erweitern diesen Kern in getrennten Paketen; keines importiert das andere.
+
+**Begründung:** Chaos verwendet nachweislich die Classic-Basis. Duplizierung würde zu Regelabweichungen führen, eine direkte Chaos-zu-Classic-Abhängigkeit würde die Modusgrenze verwischen.
+
+**Verworfene Alternativen:** Kopierte Regelimplementierungen; ein einziges Modul mit verstreuten `if (chaos)`-Verzweigungen.
+
+## D-015 – TV als sitzlose `display-host`-Rolle
+
+**Status:** Entschieden
+
+**Entscheidung:** Die TV-Verbindung besitzt eine eigene Rolle, zählt nicht als Spieler und darf keine Gameplay-Intents senden. Sie erhält eine serverseitig erzeugte öffentliche Projektion.
+
+**Begründung:** Das entspricht dem rekonstruierten Couch-Konzept und verhindert versehentliche Preisgabe privater Hände.
+
+**Verworfene Alternativen:** TV als Spieler mit versteckter Hand; ein Vollsnapshot, aus dem die UI Felder ausblendet.
+
+## D-016 – Eigenständige Reconnect-Berechtigungen ohne Accountpflicht
+
+**Status:** Entschieden für Alpha 0.1
+
+**Entscheidung:** Der Project-Havoc-Server stellt nicht erratbare Host- und Spieler-Reconnect-Berechtigungen aus. Alpha 0.1 verlangt keinen externen Account- oder Supabase-Dienst.
+
+**Begründung:** Lokale Spielrunden sollen ohne Installation und unnötige externe Infrastruktur funktionieren. Anzeigename und Socket-ID sind keine sichere Identität.
+
+**Verworfene Alternativen:** Identität nur über Namen; Socket-ID als Sitz; Übernahme der Supabase-Abhängigkeit der Referenz.
+
+## D-017 – Serverdeadlines als serialisierte Commands
+
+**Status:** Entschieden
+
+**Entscheidung:** Alle fachlichen Timer verwenden absolute Serverdeadlines und treten bei Fälligkeit als Commands in dieselbe serielle Sitzungsverarbeitung wie Clientaktionen ein.
+
+**Begründung:** Chaos-Ereignisse dürfen laufende Auflösungen nicht unterbrechen. Reconnect und verzögerte Nachrichten benötigen eine eindeutige Reihenfolge.
+
+**Verworfene Alternativen:** Verbindliche Clienttimer; voneinander unabhängige Callbacks, die denselben Zustand parallel mutieren.
+
+## D-018 – Mehrschichtiges Zustandsmodell
+
+**Status:** Entschieden
+
+**Entscheidung:** Sitzungsphase, Zugzustand und Chaos-Unterzustand werden getrennt modelliert. Übergänge sind explizite, vollständig validierte Commands.
+
+**Begründung:** Reaktion, Ereignis und Sitzungslobby haben unterschiedliche Akteure und Berechtigungen. Ein einzelnes unspezifisches Statusfeld würde ungültige Kombinationen begünstigen.
+
+**Verworfene Alternativen:** UI-gesteuerte Boolesche Flags; frei kombinierbare Statusfelder ohne Invarianten.
+
+## D-019 – Alpha 0.1 als vertikaler Lobby-Schnitt
+
+**Status:** Entschieden
+
+**Entscheidung:** Alpha 0.1 endet bei einem startbaren Server, startbaren TV-/Controller-Apps, QR-/Code-Beitritt, Namen, Ready, mehreren Clients, Hoststart-Gate und grundlegendem Reconnect. Es enthält keine Kartenengine.
+
+**Begründung:** Der Schnitt validiert Netzwerk, Rollen, Privatsphäre und Gerätefluss, bevor Regelkomplexität hinzukommt.
+
+**Verworfene Alternativen:** Bereits in Alpha 0.1 einen unvollständigen Classic-Zug implementieren.
+
 ## Offene technische Entscheidungen
 
 | ID | Frage | Benötigt vor |
@@ -137,12 +207,12 @@ Dieses Dokument ist ein leichtgewichtiges Entscheidungsprotokoll. Der Status lau
 | O-007 | Muss eine Sitzung einen Serverneustart überleben? | Vor Persistenzentscheidung |
 | O-008 | Welche Last- und Skalierungsziele gelten? | Vor Phase 8 |
 | O-009 | Welche Telemetrie ist erlaubt und wie lange wird sie gespeichert? | Vor produktivem Betrieb |
-| O-010 | Wird TV-Steuerung nur über Browser-UI, zusätzlich per Controller oder anderweitig ausgelöst? | Phase 1 / 4 |
+| O-010 | Welche konkrete Ablauf- und Widerrufspolitik gilt für Host- und Reconnect-Berechtigungen? | Alpha 0.1 |
 
 ## Ausdrücklich nicht entschieden
 
-- Konkrete Classic- oder Chaos-Regeln
-- Effekte der Chaos-Karten und Zeitereignisse
+- Die in `GDD.md` markierten widersprüchlichen Classic-Regeln
+- finales Balancing, Reihenfolge und Benennung der Chaos-Karten und Zeitereignisse
 - Visueller Stil, Audio-Stil und Markenidentität
 - Hosting-Anbieter, Datenbank und Deploymentplattform
 - Monetarisierung oder Accountsystem

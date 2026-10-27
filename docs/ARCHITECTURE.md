@@ -91,6 +91,7 @@ Diese Struktur ist eine Zielstruktur für spätere Aufträge. In Auftrag 001 wer
 ### `packages/game-core`
 
 - Definiert modusunabhängige Domänenbegriffe und Phasenübergänge
+- Enthält die von Classic und Chaos gemeinsam verwendeten Basiskartenregeln, ohne selbst einen konkreten Modus auszuwählen
 - Stellt Schnittstellen für Regelmodule, Uhr und Zufallsquelle bereit
 - Enthält reine Zustandsübergänge, soweit fachlich möglich
 - Kennt keine Socket.IO- oder React-Details
@@ -98,6 +99,7 @@ Diese Struktur ist eine Zielstruktur für spätere Aufträge. In Auftrag 001 wer
 ### `packages/rules-classic` und `packages/rules-chaos`
 
 - Implementieren jeweils nur das freigegebene Regelwerk des Modus
+- Komponieren gemeinsame Basiskartenregeln aus `game-core`; Chaos ergänzt diese, importiert aber nicht das Classic-Modul
 - Prüfen Aktionen gegen Zustand, Phase, Akteur und Zeitpunkt
 - Liefern explizite Folgeeffekte beziehungsweise Zustandsänderungen
 - Verwenden injizierbare Uhr und Zufallsquelle für reproduzierbare Tests
@@ -173,8 +175,43 @@ Für eine erste lokale Version ist ein begrenzter In-Memory-Sitzungsspeicher die
 - Beim ersten erfolgreichen Beitritt erzeugt der Server eine nicht erratbare Reconnect-Berechtigung.
 - Der Controller speichert sie lokal und sendet sie bei Wiederverbindung.
 - Der Server rotiert oder widerruft Berechtigungen nach definierten Regeln.
-- Host-Rechte werden separat geprüft und nicht aus Clientdarstellung oder Eventnamen abgeleitet.
+- Der TV besitzt eine eigene Rolle `display-host`, zählt nicht zum Spielerlimit und erhält ausschließlich eine öffentliche Projektion.
+- Host-Rechte werden separat geprüft und nicht aus Clientdarstellung, Anzeigename oder Eventnamen abgeleitet.
+- Alpha 0.1 benötigt keinen externen Accountdienst: Raum-, Host- und Reconnect-Berechtigungen werden vom Project-Havoc-Server ausgestellt.
 - Verhalten bei dauerhaftem Host-Ausfall bleibt bis zur Produktentscheidung offen.
+
+## Abgleich mit dem rekonstruierten Spielkonzept
+
+Die Architektur aus Auftrag 001 trägt Classic und Chaos grundsätzlich, benötigt aber folgende Präzisierungen:
+
+- Das Sitzungsaggregat trennt Sitzungsphase, normalen Zugzustand und optionalen Chaos-Unterzustand. Das vollständige Modell steht in `GAME_STATES.md`.
+- Der TV ist eine explizite, sitzlose Hostrolle. Er darf Lobby-/Sitzungsaktionen, aber niemals Spielerintents senden.
+- Classic und Chaos teilen einen kleinen Basiskartenkern. Chaos ist eine Komposition aus diesem Kern, fünf Chaos-Karten, Ereignisautomat und Gesamtzeituhr; es ist keine Kopie der Classic-Engine.
+- Der Scheduler speichert absolute Serverdeadlines für Ruf-Fenster, Disconnect-Frist, Chaos-Reaktion, Ereignisentscheidung, Ergebnisfenster, Finalphase und Matchende.
+- Timer feuern als Commands in dieselbe serielle Warteschlange wie Clientintents. Ein Timer darf keinen halbfertigen Zustandsübergang unterbrechen.
+- Private Projektionen werden auf dem Server erzeugt: Display, allgemeiner Spieler und betroffener Spieler erhalten unterschiedliche Datenformen.
+- Zufällige Decks, W6, automatische Ziele/Karten und Tie-Breaks laufen ausschließlich über eine injizierbare serverseitige Zufallsquelle.
+- Alpha 0.1 implementiert nur Sitzung, Lobby, Rollen und Reconnect. Gameplay-Zustände werden dokumentiert, aber noch nicht codiert.
+
+### Sitzungsaggregat
+
+Ein künftiges Aggregat enthält mindestens:
+
+- Sitzungscode, Phase, Revision und Erstell-/Ablaufzeit
+- Hostberechtigung und Displayverbindungen
+- Sitze mit stabiler Spieler-ID, Name, Ready und Verbindungsstatus
+- gewählten Modus
+- optionalen Partiezustand mit Zugzustand
+- registrierte absolute Deadlines
+- Deduplizierungsresultate kürzlich verarbeiteter Aktions-IDs
+
+Ein einzelner serverseitiger Dispatcher verarbeitet alle Commands pro Sitzung nacheinander und veröffentlicht erst danach Revision und Projektionen.
+
+### Timer- und Deadline-Modell
+
+Eine Deadline enthält Typ, Sitzung, erwartete Zustandsrevision beziehungsweise fachliche Vorbedingung und absoluten Serverzeitpunkt. Beim Auslösen prüft der Server erneut, ob sie noch gültig ist. Dadurch werden alte Timer nach Reconnect, Zustandswechsel oder bereits getroffener Entscheidung zu sicheren No-ops.
+
+Für Prozessneustarts reicht in Alpha 0.1 In-Memory-Betrieb; ein späterer Sitzungsadapter muss Deadlines gemeinsam mit dem Zustand persistieren, falls Neustart-Wiederherstellung gefordert wird.
 
 ## Sicherheit und Validierung
 
