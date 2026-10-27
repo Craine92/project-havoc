@@ -18,6 +18,9 @@ Die Referenzanalyse hat wesentliche Fragen aus Auftrag 001 beantwortet:
 - TV als sitzlose öffentliche Hostanzeige
 - Smartphone als private Spieleransicht
 - Referenz-Disconnect-Frist des aktiven Spielers: 20 Sekunden
+- Workspace: npm Workspaces, npm 11 und Node.js ab 22.12
+- Laufzeitvalidierung: Zod 4
+- Alpha-0.1A-Startzustand: atomarer neutraler Zustand `started`
 
 Diese Werte sind rekonstruiert, aber nicht automatisch als finales Balancing freigegeben.
 
@@ -30,15 +33,13 @@ Diese Werte sind rekonstruiert, aber nicht automatisch als finales Balancing fre
 
 ## P0-A01 – Technische Produktgrenzen
 
-1. Welcher Paketmanager und welche verbindlichen Node.js-Versionen werden verwendet?
-2. Soll Alpha 0.1 ausschließlich im lokalen Heimnetz laufen, über einen zentral gehosteten Server oder zunächst beides unterstützen?
-3. Wie entsteht die auf Smartphones erreichbare Join-URL im lokalen Netz, insbesondere bei mehreren Netzwerkadaptern, VPN und Firewall?
-4. Ist HTTPS bereits für die lokale Alpha erforderlich, und wie werden Zertifikate beziehungsweise Browserwarnungen behandelt?
-5. Wie lange bleiben leere Räume, Hostberechtigungen und Spieler-Reconnect-Tokens gültig?
-6. Soll ein verlorenes Hosttoken wiederherstellbar sein oder endet die administrierbare Sitzung damit?
-7. Was zeigt der Alpha-0.1-Startzustand nach erfolgreichem Hoststart: statischer „Spiel wird vorbereitet“-Bildschirm oder unmittelbare Rückkehr zur Lobby?
-8. Soll die Moduswahl Classic/Chaos bereits in Alpha 0.1 sichtbar und speicherbar sein, obwohl noch keine Regeln laufen? Die Roadmap plant dies als Lobbyinformation.
-9. Welche minimale Browsermatrix muss die erste technische Alpha bestehen?
+1. Soll Alpha 0.1 ausschließlich im lokalen Heimnetz laufen, über einen zentral gehosteten Server oder zunächst beides unterstützen?
+2. Wie entsteht die auf Smartphones erreichbare Join-URL im lokalen Netz, insbesondere bei mehreren Netzwerkadaptern, VPN und Firewall?
+3. Ist HTTPS bereits für die lokale Alpha erforderlich, und wie werden Zertifikate beziehungsweise Browserwarnungen behandelt?
+4. Wie lange bleiben leere Räume, Hostberechtigungen und Spieler-Reconnect-Tokens gültig?
+5. Soll ein verlorenes Hosttoken wiederherstellbar sein oder endet die administrierbare Sitzung damit?
+6. Welche minimale Browsermatrix muss die erste technische Alpha bestehen?
+7. Wie lange müssen verarbeitete Aktions-IDs aufbewahrt werden, bevor Deduplizierungseinträge sicher entfernt werden dürfen?
 
 ## P0-Game – Classic-Konflikte
 
@@ -107,13 +108,13 @@ Diese Fragen sind für Alpha 0.1 sowie Classic/Chaos nicht blockierend.
 6. Welche Geräte-/Browserkombinationen werden offiziell unterstützt?
 7. Benötigt ein Release Schutz gegen öffentliches Raumcode-Raten, Missbrauch und Denial of Service über lokale Grenzen hinaus?
 
-## Priorisierte Entscheidung für Auftrag 003
+## Priorisierte Entscheidungen für Auftrag 004
 
-Vor dem Workspace-Aufbau sollten Paketmanager, Node-Version und primäres Netzwerkmodell entschieden werden. Für die übrigen Alpha-0.1-Punkte kann Auftrag 003 mit folgenden ausdrücklich vorläufigen Annahmen arbeiten, sofern der Auftraggeber sie bestätigt:
+Workspace, Node-Untergrenze, Validator, Token-Grundstrategie und neutraler Startzustand sind mit Auftrag 003 entschieden. Für Auftrag 004 bleiben folgende vorläufige Annahmen relevant:
 
 - Moduswahl wird gespeichert, startet aber nur einen neutralen Platzhalterzustand.
 - Sitzungen sind zunächst In-Memory und überleben keinen Serverneustart.
 - Spieler- und Hostidentität beruhen auf servergenerierten, lokal gespeicherten Tokens.
 - Die Alpha wird zuerst im lokalen Heimnetz getestet, ohne Deployment.
 
-Gameplay-Konflikte bleiben bis Alpha 0.2 dokumentiert offen und dürfen in Auftrag 003 nicht implementiert werden.
+Gameplay-Konflikte bleiben bis Alpha 0.2 dokumentiert offen und dürfen in Auftrag 004 nicht implementiert werden.

@@ -1,0 +1,14 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/protocol" },
+    { "path": "./packages/game-core" },
+    { "path": "./packages/rules-classic" },
+    { "path": "./packages/rules-chaos" },
+    { "path": "./packages/test-support" },
+    { "path": "./packages/ui" },
+    { "path": "./apps/server" },
+    { "path": "./apps/tv" },
+    { "path": "./apps/controller" }
+  ]
+}

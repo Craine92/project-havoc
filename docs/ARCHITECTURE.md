@@ -250,12 +250,24 @@ Ein Regelmodul soll eine kleine, stabile Schnittstelle erfüllen, beispielsweise
 
 ## Noch offene technische Punkte
 
-- Paketmanager und Workspace-Werkzeug
-- Node- und Browser-Supportmatrix
-- Laufzeit-Schema-Bibliothek
+- Browser- und Geräte-Supportmatrix; Node.js ist für das Fundament auf mindestens 22.12 festgelegt
 - Hosting- und Netzwerkmodell, insbesondere Smartphone-Erreichbarkeit im lokalen Netz
 - TLS-Anforderungen für produktive Smartphone-Browser
 - Persistenz und Verhalten bei Serverneustart
 - horizontale Skalierung und Socket.IO-Adapter
 - Umfang von Telemetrie, Datenschutz und Aufbewahrung
 - konkrete Reconnect-Fristen und Host-Übernahme
+
+## Implementierter Stand Alpha 0.1A
+
+- npm Workspaces mit Node.js ab 22.12
+- TypeScript 6 im Strict Mode mit zusätzlichen Prüfungen für unsichere Indexzugriffe und optionale Felder
+- Zod 4 für strikt geschlossene Wire-Schemas
+- React/Vite-Minimaleinstiege für TV und Controller ohne visuelle Oberfläche
+- Node-HTTP-Minimalprozess mit `GET /health`, noch ohne Socket.IO
+- reine Lobby-Domäne in `packages/game-core`, ohne React-, Browser-, Socket.IO- oder Node-Abhängigkeit
+- injizierte Uhr, ID-Erzeugung und Reconnect-Token-Strategie
+- HMAC-basierter Node-Adapter: deterministische Token-Ausgabe für idempotente Antworten, nur Digest im Domänenzustand
+- Vitest für Domänen-/Vertragstests und vorbereitete Playwright-Konfiguration ohne künstliche UI-Tests
+
+Der dokumentierte Zwischenzustand `STARTING` wird in Alpha 0.1A nicht als beobachtbarer Zustand gespeichert: Der reine Start-Command besitzt noch keine asynchrone Arbeit und wechselt atomar von `lobby` in den neutralen Zustand `started`. Sobald eine spätere Startsequenz tatsächlich mehrere fehlbare Schritte besitzt, wird ein eigener Zwischenzustand erneut bewertet.

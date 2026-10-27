@@ -194,13 +194,51 @@ Dieses Dokument ist ein leichtgewichtiges Entscheidungsprotokoll. Der Status lau
 
 **Verworfene Alternativen:** Bereits in Alpha 0.1 einen unvollständigen Classic-Zug implementieren.
 
+## D-020 – npm Workspaces und Laufzeitbasis
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** Das Monorepo verwendet npm Workspaces, npm 11 und Node.js ab Version 22.12. Die installierte Umgebung verwendet Node.js 24 und erzeugt eine Lockdatei im Format 3.
+
+**Begründung:** npm ist Teil der vorhandenen Node-Installation und erfüllt den kleinen Workspace ohne zusätzliches Orchestrierungswerkzeug. Die Untergrenze deckt die Anforderungen des aktuellen Vite-Toolings ab.
+
+**Verworfene Alternativen:** pnpm, Yarn und ein zusätzliches Monorepo-Framework ohne belegten Bedarf.
+
+## D-021 – Zod für Wire-Validierung
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** `packages/protocol` verwendet Zod 4 und strikt geschlossene Objektschemas. Die interne Lobby-Domäne besitzt davon getrennte Typen und Regeln.
+
+**Begründung:** Netzwerkdaten benötigen Laufzeitprüfung; Zod liefert Typableitung und verständliche Validierungsfehler bei geringer Zusatzarchitektur.
+
+**Verworfene Alternativen:** ausschließlich TypeScript-Typen; eigene allgemeine Schema-Engine.
+
+## D-022 – Reconnect-Token als deterministisches HMAC-Credential
+
+**Status:** Entschieden und umgesetzt
+
+**Entscheidung:** Ein Serveradapter leitet ein opakes Token deterministisch aus einem eindeutigen Credential-Subject und einem mindestens 32 Byte langen Servergeheimnis ab. Die Domäne speichert ausschließlich den SHA-256-Digest und verwendet konstante Zeit beim Vergleich.
+
+**Begründung:** Derselbe erfolgreiche Join kann bei wiederholter Aktions-ID dieselbe private Antwort liefern, ohne Roh-Tokens im Sitzungszustand zu speichern. Die Domäne bleibt durch Injektion unabhängig von Node-Kryptografie.
+
+**Verworfene Alternativen:** Anzeigename oder Socket-ID als Identität; Klartexttoken im öffentlichen oder Domänenzustand; zufällige Neuausgabe bei jedem Retry.
+
+## D-023 – Atomarer neutraler Startzustand
+
+**Status:** Entschieden für Alpha 0.1A
+
+**Entscheidung:** Der reine Lobby-Command wechselt atomar von `lobby` nach `started`. Ein persistierter Zustand `starting` wird erst eingeführt, wenn eine spätere Startsequenz tatsächlich asynchrone oder wiederaufnehmbare Teilschritte besitzt.
+
+**Begründung:** Alpha 0.1A erzeugt weder Deck noch Netzwerknebenwirkungen. Ein derzeit unbeobachtbarer Zwischenzustand hätte keine Invariante und wäre vorsorgliche Komplexität.
+
+**Verworfene Alternativen:** Ein sofort wieder verlassener `starting`-Status ohne fachlich mögliche Beobachtung.
+
 ## Offene technische Entscheidungen
 
 | ID | Frage | Benötigt vor |
 | --- | --- | --- |
-| O-001 | Welcher Paketmanager und welches Workspace-Werkzeug werden verwendet? | Phase 2 |
-| O-002 | Welche Node.js-, Browser- und Geräteversionen werden unterstützt? | Phase 2 / Releaseplanung |
-| O-003 | Welche Bibliothek übernimmt Laufzeit-Schemavalidierung? | Phase 3 |
+| O-002 | Welche Browser- und Geräteversionen werden unterstützt? | Releaseplanung |
 | O-004 | Wie werden TV und Smartphones im Zielnetz verbunden und wie lautet die öffentliche Join-URL? | Phase 4 |
 | O-005 | Ist HTTPS im lokalen Zielbetrieb erforderlich und wie werden Zertifikate bereitgestellt? | Phase 4 |
 | O-006 | Wie lange bleiben Sitzungen und Reconnect-Berechtigungen gültig? | Phase 4 |
@@ -208,6 +246,7 @@ Dieses Dokument ist ein leichtgewichtiges Entscheidungsprotokoll. Der Status lau
 | O-008 | Welche Last- und Skalierungsziele gelten? | Vor Phase 8 |
 | O-009 | Welche Telemetrie ist erlaubt und wie lange wird sie gespeichert? | Vor produktivem Betrieb |
 | O-010 | Welche konkrete Ablauf- und Widerrufspolitik gilt für Host- und Reconnect-Berechtigungen? | Alpha 0.1 |
+| O-011 | Wie lange müssen verarbeitete Aktions-IDs für Deduplizierung aufbewahrt werden? | Vor langlebigen/produktiven Sitzungen |
 
 ## Ausdrücklich nicht entschieden
 

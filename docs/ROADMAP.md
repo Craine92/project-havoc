@@ -60,6 +60,8 @@ Nicht enthalten: Kartendeck, Kartenaktionen, Classic-Züge, Chaos-Karten, Ereign
 
 ### A01.1 – Workspace und Qualitätsgates
 
+**Status:** In Auftrag 003 umgesetzt
+
 **Abhängigkeiten:** Auftrag 002 abgeschlossen
 
 **Lieferumfang:**
@@ -83,12 +85,14 @@ Nicht enthalten: Kartendeck, Kartenaktionen, Classic-Züge, Chaos-Karten, Ereign
 
 ### A01.2 – Protokoll und Lobby-Domäne
 
+**Status:** In Auftrag 003 umgesetzt
+
 **Abhängigkeiten:** A01.1
 
 **Lieferumfang:**
 
 - versionierte Client-/Servernachrichten mit Laufzeitschemas
-- Sitzungsphasen `LOBBY`, `STARTING`, `STARTED_PLACEHOLDER`, `CLOSED`
+- Sitzungsphasen `lobby`, neutraler atomarer Zustand `started` und `closed`; `starting` wird erst bei realer asynchroner Startarbeit eingeführt
 - Rollen `display-host` und `player`
 - Raumcode, stabile Spieler-ID, Host-/Reconnect-Berechtigung
 - Roster, Name, Ready, Verbindung, Modusfeld und Revision
