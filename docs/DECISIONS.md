@@ -387,3 +387,27 @@ Dieses Dokument ist ein leichtgewichtiges Entscheidungsprotokoll. Der Status lau
 - Monetarisierung oder Accountsystem
 
 Diese Punkte dürfen nicht implizit durch eine technische Implementierung vorweggenommen werden.
+
+## D-037 – Reine, serverautoritative Classic-Transitionen
+
+**Status:** Entschieden und umgesetzt für Alpha 0.2A
+
+**Entscheidung:** Classic-Aktionen übertragen ausschließlich Spieler-ID, Karten-ID und zwingend benötigte Entscheidungen. Kartenwerte und Besitz werden aus dem kanonischen Zustand ermittelt. Transitionen sind rein, revisionsbehaftet und erhalten Zufall sowie Uhr injiziert.
+
+**Begründung:** Transport und UI können keine Spielregel oder Kartenwahrheit vorgeben; Tests und Fehlersimulationen bleiben vollständig reproduzierbar.
+
+## D-038 – Ungeklärte Startkarte blockiert Initialisierung
+
+**Status:** Vorläufige technische Grenze, keine Spielregelentscheidung
+
+**Entscheidung:** Nur eine gemischte Zahlenkarte darf Alpha 0.2A initial eröffnen. Eine Aktions- oder Wild-Karte ergibt stabil `OPENING_CARD_RULE_UNDECIDED`; es wird weder neu gezogen noch eine Startwirkung angenommen.
+
+**Begründung:** Die Dokumentation beschreibt widersprüchliche beziehungsweise nur aus der Referenz abgeleitete Varianten. Der Auftrag verbietet eine erfundene Sonderregel.
+
+## D-039 – Projektionsgrenze vor dem Transport
+
+**Status:** Entschieden und umgesetzt für Alpha 0.2A
+
+**Entscheidung:** Öffentliche und spielerspezifische Projektionen werden im Regelpaket aus dem kanonischen Zustand erzeugt. Fremde Hände, Deckreihenfolge und private +4-Legalität besitzen kein Client-Projektionsfeld.
+
+**Begründung:** Datenschutz wird an der Domänengrenze erzwungen und nicht der späteren UI überlassen.

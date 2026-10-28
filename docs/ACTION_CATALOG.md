@@ -105,3 +105,14 @@ Nach zwölf Sekunden ersetzt der Server jede fehlende gültige Entscheidung durc
 ## Alpha-0.1-relevanter Ausschnitt
 
 Alpha 0.1 implementiert nur Raum erstellen, Display verbinden, Spieler beitreten/reconnecten, Namen, Ready, Moduswahl als vorbereitete Lobbyinformation und Hoststart bis zu einem bestätigten Start-/Platzhalterzustand. Keine Karten-, Ruf-, Chaos-, Schatz- oder Ereignisaktion gehört in Alpha 0.1.
+
+## Alpha-0.2A-Engineaktionen
+
+| Aktion | Servervalidierung | Ergebnis |
+| --- | --- | --- |
+| `play-card` | aktiver Spieler, Besitz per Karten-ID, Zugzustand, Spielbarkeit, Wild-Farbe | Karte ablegen und Effekt vollständig beziehungsweise bis zur +4-Entscheidung auflösen |
+| `draw-card` | aktiver Spieler in `awaiting-action`, ziehbarer Stapel | genau eine Karte; unspielbar beendet den Zug, spielbar öffnet `drawn-card-decision` |
+| `keep-drawn-card` | aktiver Spieler in `drawn-card-decision` | Karte behalten und Zug weitergeben |
+| `resolve-draw-four` | ausschließlich gespeichertes Opfer | vier ziehen/aussetzen, bei erfolgreicher Challenge zieht der Täter vier, bei fehlgeschlagener Challenge zieht das Opfer sechs und setzt aus |
+
+Alle Ablehnungen sind zustandsneutral und verwenden stabile Codes. Ein Client übermittelt niemals Kartenfarbe, Kartenwert, Besitz oder +4-Legalität. Ruf- und Fangaktionen sind bis zur Game-Director-Entscheidung ausdrücklich nicht Teil der Engine.

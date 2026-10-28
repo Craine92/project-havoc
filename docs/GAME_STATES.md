@@ -141,3 +141,15 @@ Verbindung ist ein Attribut eines Sitzes, kein eigener Spielzustand.
 - Classic als Einzelrunde oder Match mit Zielpunktzahl
 - Produktentscheidung, ob der prototypische 20-Sekunden-Disconnect-Autozug unverändert bleibt
 - Ereignisreihenfolge beziehungsweise Zufallsgewichtung im finalen Chaos-Regelwerk
+
+## Tatsächlich implementierter Classic-Automat in Alpha 0.2A
+
+Die reine Engine verwendet `playing` und `finished` als Phase sowie drei Zugzustände:
+
+| Zustand | Entscheider | Erlaubte Folge |
+| --- | --- | --- |
+| `awaiting-action` | aktiver Spieler | passende Karten-ID spielen oder genau eine Karte ziehen |
+| `drawn-card-decision` | aktiver Spieler | ausschließlich die gespeicherte frisch gezogene Karten-ID spielen oder behalten |
+| `draw-four-decision` | betroffenes Opfer | annehmen oder anfechten; Legalität bleibt privat |
+
+Farbwahl wird atomar mit `play-card` übertragen und serverseitig validiert. Nach `finished` lehnt die Engine jede Gameplay-Aktion ab. Rufzustand, Fangfenster, Lobby-/Transportkopplung und Chaos-Zustände sind in diesem Paket nicht implementiert.

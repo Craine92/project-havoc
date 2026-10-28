@@ -290,3 +290,11 @@ Ein Arbeitspaket ist fertig, wenn:
 - Dokumentation und Entscheidungsprotokoll aktuell sind,
 - keine Geheimnisse, Debugreste oder ungeklärte kritische Risiken verbleiben,
 - Diff und Git-Status geprüft und keine ungefragten Commits oder Pushes erfolgt sind.
+
+## Alpha 0.2A – Classic-Engine-Grundlage
+
+**Umgesetzt:** 108-Karten-Modell, injizierbares Mischen/Uhr, zwei bis acht Spieler, reine Zugtransitionen, Basis- und Sonderkarten, +4-Challenge, verzögerte Siegerbestätigung, private/öffentliche Projektionen, stabile Fehlercodes sowie deterministische Mehrpartien-Simulation.
+
+**Bewusst nicht integriert:** Socket.IO-Gameplay, Lobby-Startkopplung, TV-/Controller-Karten-UI und Chaos. Die vorhandene Alpha-0.1-Lobby bleibt unverändert.
+
+**Vor Alpha 0.2B zu entscheiden:** Startkarte, atomare Rufsemantik und verbindliches Runden-/Matchmodell. Danach folgen Gameplay-Protokollschemas und Serveradapter, Reconnect in Spielzuständen sowie echte Mehrclient-E2E-Partien.

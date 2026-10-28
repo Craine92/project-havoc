@@ -344,3 +344,11 @@ Project Havoc übernimmt das fachliche Prinzip, aber nicht die Supabase-Abhängi
 - Welche Namen, Texte und audiovisuelle Identität ersetzen die Referenzbegriffe?
 
 Diese Entscheidungen blockieren nicht das Alpha-0.1-Lobbyfundament, müssen aber vor der jeweiligen Gameplay-Implementierung bestätigt werden.
+
+## Implementierungsstand Alpha 0.2A
+
+Die eigenständige Classic-Regelengine bildet das 108-Karten-Deck, zwei bis acht Spieler, sieben Startkarten, farb-/zahl-/symbolgleiches Ablegen, Zieh-eine, die Entscheidung über die frisch gezogene Karte, Skip, Reverse, +2, Wild und Wild +4 einschließlich Anfechtung ab. Strafkarten sind nicht stapelbar. Eine letzte +2 beziehungsweise +4 wird vollständig aufgelöst, bevor der Rundensieger feststeht.
+
+Die Engine behandelt eine Partie derzeit technisch als einzelne Runde, ohne Punktefortschreibung. Diese technische Begrenzung ist keine Produktentscheidung für ein späteres Match. Ebenso werden Ruf/Fangfenster und Startwirkungen von Aktions- oder Wild-Karten nicht erfunden: Trifft die gemischte Eröffnung eine Nicht-Zahlenkarte, bricht die Initialisierung mit `OPENING_CARD_RULE_UNDECIDED` ab.
+
+Öffentliche Projektionen enthalten nur Kartenanzahlen, oberste Ablage, aktive Farbe, Richtung, Phase und öffentliche Ereignisse. Eine Spielerprojektion ergänzt ausschließlich die eigene Hand und eigenen Aktionen. Deckreihenfolge, fremde Hände und die private Legalität einer +4 bleiben serverintern.

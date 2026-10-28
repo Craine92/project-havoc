@@ -166,3 +166,11 @@ Gameplay-Konflikte bleiben bis Alpha 0.2 dokumentiert offen und dürfen in Auftr
 - Verbindliche Browser-/Gerätematrix und reales TV-/Smartphone-Abnahmeprotokoll.
 - HTTPS-Strategie im Heimnetz und Umgang mit iOS-/Android-Browserbeschränkungen.
 - Aufbewahrungsdauer und Rotation von Host-/Spieler-Credentials vor länger laufenden Tests.
+
+## Blockierende Game-Director-Entscheidungen nach Alpha 0.2A
+
+1. **Startkarte:** Werden Wild-Karten neu eingemischt oder gewählt, und welche sofortige Wirkung haben Skip, Reverse, +2 und gegebenenfalls +4 bei der Eröffnung? Bis zur Entscheidung akzeptiert die Engine ausschließlich eine Zahlen-Startkarte.
+2. **Havoc-/UNO-Ruf:** Erfolgt der Ruf als Vorabaktion bei zwei Karten oder atomar mit dem Ablegen auf eine Karte? Wann exakt beginnt/endet das Achtsekundenfenster bei Straf- und +4-Zwischenzuständen?
+3. **Rundenmodell:** Ist das Produkt zunächst verbindlich eine Einzelrunde oder ein Punktmatch? Welche Zielpunktzahl und Kartenwerte gelten bei einem Match?
+
+Diese Fragen sind nicht durch technische Defaults beantwortet. Sie blockieren Ruf/Fangfenster und eine ohne Abbruch immer initialisierbare beziehungsweise als „vollständig spielbar“ bezeichnete Classic-Partie, nicht aber die getesteten Grundtransitionen.

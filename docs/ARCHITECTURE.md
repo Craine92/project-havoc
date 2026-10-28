@@ -343,3 +343,11 @@ Der LAN-Launcher verwaltet Backend, TV und Controller als eine Prozessgruppe, pr
 TV und Controller behalten getrennte React-Hooks. Eine gemeinsame Transportabstraktion wurde geprüft, aber nicht eingeführt: Protokollvalidierung ist bereits geteilt, während Rollenbindung, Credential-Speicherung, Fehlerfolgen und UI-Lebenszyklen verschieden sind. Eine weitere Abstraktion hätte gegenwärtig mehr Verzweigungen als entfernte Duplikation.
 
 Browserseitige Action-IDs entstehen zentral im Protokollpaket aus `crypto.getRandomValues`. Anders als `crypto.randomUUID` steht diese primitive Zufallsquelle auch im bewusst per HTTP betriebenen privaten LAN-Kontext zur Verfügung. Ausstehende TV-Aktionen besitzen ein begrenztes Antwortfenster; Timeout, Ablehnung oder Disconnect lösen den Ladezustand und erlauben einen bewussten neuen Versuch.
+
+## Implementierter Stand Alpha 0.2A
+
+`packages/rules-classic` enthält eine transport- und UI-unabhängige Zustandsmaschine. Jede Aktion erhält den vollständigen kanonischen Zustand sowie injizierte `RandomSource`- und `Clock`-Dienste und liefert entweder einen neuen Zustand oder einen stabilen Fehlercode. Eingaben werden nicht mutiert; jede akzeptierte Aktion erhöht die Revision genau einmal. Kartenidentität, Shuffle und die später auch für Chaos nutzbaren Kartentypen liegen in `packages/game-core`.
+
+Die kanonische Engine kennt alle Hände und die Deckreihenfolge. `projectClassicPublicState` reduziert diesen Zustand auf TV-sichere Daten; `projectClassicPlayerState` ergänzt genau eine eigene Hand und die daraus serverseitig berechneten Aktionen. Die private +4-Legalität wird in keinem Projektionsmodell geführt. Gameplay-Transport, Lobby-Verknüpfung und React-Darstellung bleiben bewusst außerhalb von Alpha 0.2A.
+
+Der Simulationstreiber verwendet ausschließlich `applyClassicAction` und die Spielerprojektion. Er besitzt keinen direkten Mutationseinstieg und prüft nach jedem Zug die 108-Karten-Invariante und eindeutige Karten-IDs.

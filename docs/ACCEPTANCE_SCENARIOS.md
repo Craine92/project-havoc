@@ -274,3 +274,18 @@ Ein offenes Ereignis wird regelkonform automatisch vervollständigt; eine offene
 - Kein Test benötigt instabile reale Wartezeiten.
 - E2E-Tests verwenden getrennte Browserkontexte für TV und mindestens zwei Smartphones.
 - Project Havoc enthält keinen kopierten Rune-Riot-Code, keine Referenzassets und keine Abhängigkeit auf dessen Repository.
+
+## Alpha 0.2A – ausgeführte Engine-Abnahme
+
+- `PH-CL-A01`: Das erzeugte Deck besitzt exakt 108 eindeutige Karten in der dokumentierten Verteilung.
+- `PH-CL-A02`: Derselbe Seed erzeugt dieselbe Mischung; zwei bis acht Spieler erhalten je sieben Karten.
+- `PH-CL-A03`: Farbe, Zahl, Symbol und Wild werden akzeptiert; falsche Farbe, fremde Karte und falsche Reihenfolge werden zustandsneutral abgelehnt.
+- `PH-CL-A04`: Nach Zieh-eine ist nur die frische Karte spielbar; Behalten und unspielbarer Zug wechseln korrekt.
+- `PH-CL-A05`: Skip, Reverse einschließlich Zwei-Spieler-Fall und nicht stapelbares +2 bestimmen Ziel und Folgespieler.
+- `PH-CL-A06`: Wild verlangt eine Farbe. Wild +4 speichert Legalität privat und löst Annahme sowie erfolgreiche/erfolglose Anfechtung autoritativ auf.
+- `PH-CL-A07`: Letzte +2/+4 löst ihre Strafe vor dem Sieg; danach sind Aktionen gesperrt.
+- `PH-CL-A08`: TV sieht keine Hände/Deckreihenfolge; ein Spieler sieht nur die eigene Hand und eigene Entscheidungen.
+- `PH-CL-A09`: Simulationen nutzen dieselben Engineaktionen und prüfen nach jedem Zug 108 Karten ohne Duplikate.
+- `PH-CL-B01` (blockiert): Eröffnungswirkung für Skip, Reverse, +2, Wild und +4 benötigt Freigabe.
+- `PH-CL-B02` (blockiert): Ruf/Fangfenster benötigt eine atomare Timingentscheidung.
+- `PH-CL-B03` (blockiert): Einzelrunde versus Punktmatch benötigt eine Produktentscheidung.
