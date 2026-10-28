@@ -12,6 +12,7 @@
   "include": ["src"],
   "references": [
     { "path": "../../packages/protocol" },
-    { "path": "../../packages/game-core" }
+    { "path": "../../packages/game-core" },
+    { "path": "../../packages/rules-chaos" }
   ]
 }

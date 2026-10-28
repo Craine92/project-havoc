@@ -5,7 +5,9 @@ export {
   PROTOCOL_VERSION,
   allowedActionSchema,
   actionIdSchema,
+  cardColorSchema,
   clientMessageSchema,
+  gameActionSchema,
   errorCodeSchema,
   gameModeSchema,
   hostIdSchema,
@@ -27,6 +29,7 @@ export {
 
 export type {
   ClientMessage,
+  GameActionMessage,
   PrivateSessionView,
   ProtocolErrorCode,
   PublicSessionView,

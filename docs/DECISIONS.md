@@ -411,3 +411,12 @@ Diese Punkte dürfen nicht implizit durch eine technische Implementierung vorweg
 **Entscheidung:** Öffentliche und spielerspezifische Projektionen werden im Regelpaket aus dem kanonischen Zustand erzeugt. Fremde Hände, Deckreihenfolge und private +4-Legalität besitzen kein Client-Projektionsfeld.
 
 **Begründung:** Datenschutz wird an der Domänengrenze erzwungen und nicht der späteren UI überlassen.
+
+## Chaos-Light für den ersten Spieleabend
+
+- **Entscheidung:** Chaos wird vor Classic spielbar gemacht, als eigenes Regelmodul ohne Import aus `rules-classic`.
+- **Startkarte:** Aufdecken, bis eine Zahlenkarte oben liegt.
+- **HAVOC-Ruf:** jederzeit bei zwei oder einer Karte möglich; wer ohne Ruf auf eine Karte geht, kann 5 Sekunden lang erwischt werden (+2).
+- **Runde:** eine Runde, danach „Nochmal!“ am TV.
+- **Thema:** Karibik-Piraten mit eigenen Namen (keine geschützten Film-Namen oder -Figuren).
+- **Abwesende Spieler:** Nach 30 Sekunden Trennung zieht bzw. akzeptiert der Server automatisch, damit die Partie nicht hängt.

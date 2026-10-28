@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       '@project-havoc/protocol': workspaceSource('./packages/protocol/src/index.ts'),
       '@project-havoc/game-core': workspaceSource('./packages/game-core/src/index.ts'),
+      '@project-havoc/rules-chaos': workspaceSource('./packages/rules-chaos/src/index.ts'),
       '@project-havoc/test-support': workspaceSource('./packages/test-support/src/index.ts'),
     },
   },

@@ -1,5 +1,19 @@
 # Project Havoc
 
+## 🏴‍☠️ Schnellstart für den Spieleabend (Chaos-Light)
+
+1. `npm install` (nur beim ersten Mal)
+2. `npm run dev` – startet Server, TV-Seite und Handy-Seite und zeigt die Adressen an
+3. TV-Adresse am Fernseher/PC öffnen → **Neues Spiel**
+4. Alle scannen den QR-Code mit dem Handy, Namen eingeben, **Bereit**
+5. Am TV **Spiel starten**
+
+Gespielt wird wie Uno, nur mit Piraten-Chaos: fünf Chaos-Karten (Meuterei, Strudel, Davy Jones' Würfel, Rettungsring, Kanonenrückschlag – je dreimal im Deck), alle 3 Minuten ein automatisches Ereignis (Kraken, Sturm, Plünderung, Flaschenpost), ab Minute 20 das Finale und nach 25 Minuten gewinnt, wer die wenigsten Karten hat. Bei zwei Karten auf dem Handy **HAVOC!** drücken, sonst können dich die anderen ein paar Sekunden lang mit **Erwischt!** schnappen (+2).
+
+- Eigene Bilder, Sounds und Stimmen: siehe [apps/tv/public/assets/README.md](apps/tv/public/assets/README.md)
+- Zum Ausprobieren mit schnellen Ereignissen: `$env:HAVOC_EVENT_SECONDS='20'; npm run dev`
+- Handy-Bildschirm nicht sperren lassen: Ist ein Spieler über 30 Sekunden weg, zieht der Server automatisch für ihn.
+
 Project Havoc is a browser-based local multiplayer party game. Alpha 0.1D provides a versioned authoritative Socket.IO server, an interactive TV lobby, locally generated QR joins, and a complete smartphone controller.
 
 ## Requirements and installation

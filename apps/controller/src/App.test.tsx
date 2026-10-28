@@ -21,7 +21,7 @@ function snapshot(overrides: Partial<PrivateSessionView> = {}): PrivateSessionVi
 function model(overrides: Partial<ControllerModel> = {}): ControllerModel {
   return {
     connection: 'connected', session: null, playerId: null, notice: null, pending: null,
-    serverUrl: 'http://127.0.0.1:3000', join: vi.fn(() => null), setReady: vi.fn(), rename: vi.fn(() => null), retry: vi.fn(), forgetSession: vi.fn(), ...overrides,
+    serverUrl: 'http://127.0.0.1:3000', game: null, clockOffset: 0, gameNotice: null, gameAction: vi.fn(), join: vi.fn(() => null), setReady: vi.fn(), rename: vi.fn(() => null), retry: vi.fn(), forgetSession: vi.fn(), ...overrides,
   }
 }
 

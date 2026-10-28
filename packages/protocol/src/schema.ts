@@ -43,6 +43,20 @@ export const errorCodeSchema = z.enum([
   'RATE_LIMITED',
   'PAYLOAD_TOO_LARGE',
   'INTERNAL_ERROR',
+  'GAME_RULE',
+])
+
+export const cardColorSchema = z.enum(['red', 'yellow', 'green', 'blue'])
+const cardIdSchema = z.string().min(1).max(64).regex(identifierPattern)
+
+/** Spielzüge im Chaos-Modus. Der Server prüft jede Regel selbst. */
+export const gameActionSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('play'), cardId: cardIdSchema, color: cardColorSchema.optional(), targetId: playerIdSchema.optional() }).strict(),
+  z.object({ type: z.literal('draw') }).strict(),
+  z.object({ type: z.literal('keep') }).strict(),
+  z.object({ type: z.literal('havoc') }).strict(),
+  z.object({ type: z.literal('catch'), targetId: playerIdSchema }).strict(),
+  z.object({ type: z.literal('react'), choice: z.enum(['shield', 'mirror', 'accept']), targetId: playerIdSchema.optional() }).strict(),
 ])
 
 const actionMetadataShape = {
@@ -103,6 +117,15 @@ export const clientMessageSchema = z.discriminatedUnion('type', [
   z.object({
     ...actionMetadataShape,
     type: z.literal('room.close'),
+  }).strict(),
+  z.object({
+    ...actionMetadataShape,
+    type: z.literal('game.action'),
+    action: gameActionSchema,
+  }).strict(),
+  z.object({
+    ...actionMetadataShape,
+    type: z.literal('game.rematch'),
   }).strict(),
 ])
 
@@ -195,12 +218,19 @@ export const serverMessageSchema = z.discriminatedUnion('type', [
     type: z.literal('session.snapshot'),
     session: z.union([publicSessionViewSchema, privateSessionViewSchema]),
   }).strict(),
+  z.object({
+    version: z.literal(PROTOCOL_VERSION),
+    type: z.literal('game.snapshot'),
+    // Die rollenbezogene Spielansicht wird vom Server aus den Regelprojektionen erzeugt.
+    game: z.looseObject({ revision: revisionSchema, phase: z.enum(['playing', 'finished']) }),
+  }).strict(),
 ])
 
 export type ClientMessage = z.infer<typeof clientMessageSchema>
 export type ServerMessage = z.infer<typeof serverMessageSchema>
 export type PublicSessionView = z.infer<typeof publicSessionViewSchema>
 export type PrivateSessionView = z.infer<typeof privateSessionViewSchema>
+export type GameActionMessage = z.infer<typeof gameActionSchema>
 export type ProtocolErrorCode = z.infer<typeof errorCodeSchema>
 
 export type ValidationResult<T> =

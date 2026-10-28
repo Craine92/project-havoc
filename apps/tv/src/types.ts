@@ -1,4 +1,5 @@
 import type { PrivateSessionView } from '@project-havoc/protocol'
+import type { ChaosPublicView } from '@project-havoc/rules-chaos'
 
 export type ConnectionState =
   | 'connecting'
@@ -10,7 +11,7 @@ export type ConnectionState =
   | 'session-invalid'
   | 'host-lost'
 
-export type HostAction = 'create' | 'reconnect' | 'set-mode' | 'start' | 'close'
+export type HostAction = 'create' | 'reconnect' | 'set-mode' | 'start' | 'close' | 'rematch'
 
 export interface TvLobbyModel {
   readonly connection: ConnectionState
@@ -20,6 +21,9 @@ export interface TvLobbyModel {
   readonly serverUrl: string
   readonly joinUrl: string | null
   readonly joinUrlWarning: string | null
+  readonly game: ChaosPublicView | null
+  readonly clockOffset: number
+  rematch(): void
   createRoom(): void
   selectMode(mode: 'classic' | 'chaos'): void
   startSession(): void

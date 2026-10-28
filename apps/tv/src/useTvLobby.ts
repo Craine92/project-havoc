@@ -18,6 +18,8 @@ import {
   saveHostCredentials,
   type StoredHostCredentials,
 } from './credentials.js'
+import type { ChaosPublicView } from '@project-havoc/rules-chaos'
+
 import type { ConnectionState, HostAction, TvLobbyModel } from './types.js'
 
 function newActionId(label: string): string {
@@ -50,6 +52,8 @@ export function useTvLobby(): TvLobbyModel {
   const [session, setSession] = useState<PrivateSessionView | null>(null)
   const [pendingAction, setPendingAction] = useState<HostAction | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [game, setGame] = useState<ChaosPublicView | null>(null)
+  const [clockOffset, setClockOffset] = useState(0)
   const socketRef = useRef<Socket | null>(null)
   const credentialsRef = useRef<StoredHostCredentials | null>(loadHostCredentials())
   const pendingRef = useRef(new Map<string, PendingRequest>())
@@ -181,6 +185,12 @@ export function useTvLobby(): TvLobbyModel {
         finishPending(message.actionId)
         return
       }
+      if (message.type === 'game.snapshot') {
+        const view = message.game as unknown as ChaosPublicView
+        setGame(view)
+        setClockOffset(view.serverNow - Date.now())
+        return
+      }
       if (message.type === 'action.rejected') {
         const pending = message.actionId ? finishPending(message.actionId) : undefined
         setNotice(friendlyError(message))
@@ -276,6 +286,9 @@ export function useTvLobby(): TvLobbyModel {
     selectMode: (mode) => sendHostAction({ type: 'room.set-mode', mode }, 'set-mode'),
     startSession: () => sendHostAction({ type: 'room.start' }, 'start'),
     closeRoom: () => sendHostAction({ type: 'room.close' }, 'close'),
+    game,
+    clockOffset,
+    rematch: () => sendHostAction({ type: 'game.rematch' }, 'rematch'),
     retryConnection: () => {
       setConnection(credentialsRef.current ? 'reconnecting' : 'connecting')
       setNotice(null)
@@ -287,6 +300,7 @@ export function useTvLobby(): TvLobbyModel {
       closedRef.current = false
       clearPending()
       setSession(null)
+      setGame(null)
       setPendingAction(null)
       setNotice(null)
       if (socketRef.current?.connected) setConnection('connected')

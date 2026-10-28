@@ -6,6 +6,8 @@ import { PROTOCOL_VERSION, createActionId, roomCodeSchema, validateClientMessage
 
 import { loadControllerConfig } from './config.js'
 import { clearPlayerCredentials, loadPlayerCredentials, savePlayerCredentials, type PlayerCredentials } from './credentials.js'
+import type { ChaosPlayerView } from '@project-havoc/rules-chaos'
+
 import type { ControllerAction, ControllerConnection, ControllerModel } from './types.js'
 
 const actionId = (kind: string): string => createActionId(`phone_${kind}`)
@@ -32,6 +34,9 @@ export function useController(initialRoomCode: string): ControllerModel {
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [pending, setPending] = useState<ControllerAction | null>(null)
+  const [game, setGame] = useState<ChaosPlayerView | null>(null)
+  const [clockOffset, setClockOffset] = useState(0)
+  const [gameNotice, setGameNotice] = useState<string | null>(null)
   const socketRef = useRef<Socket | null>(null)
   const credentialsRef = useRef<PlayerCredentials | null>(initialRoomCode ? loadPlayerCredentials(initialRoomCode) : null)
   const pendingKinds = useRef(new Map<string, ControllerAction>())
@@ -124,10 +129,20 @@ export function useController(initialRoomCode: string): ControllerModel {
         setPending(null)
         return
       }
+      if (message.type === 'game.snapshot') {
+        const view = message.game as unknown as ChaosPlayerView
+        setGame(view)
+        setClockOffset(view.serverNow - Date.now())
+        return
+      }
       if (message.type === 'action.rejected') {
         const kind = message.actionId ? pendingKinds.current.get(message.actionId) : undefined
         if (message.actionId) pendingKinds.current.delete(message.actionId)
         setPending(null)
+        if (kind === 'game' || message.error.code === 'GAME_RULE') {
+          setGameNotice(message.error.message)
+          return
+        }
         setNotice(rejectionText(message))
         const invalidCredential = kind === 'reconnect'
           && (message.error.code === 'INVALID_RECONNECT_TOKEN' || message.error.code === 'NOT_AUTHORIZED' || message.error.code === 'ROOM_NOT_FOUND')
@@ -184,8 +199,15 @@ export function useController(initialRoomCode: string): ControllerModel {
     emit(parsed.data, kind)
   }, [emit, session?.revision])
 
+  useEffect(() => {
+    if (!gameNotice) return
+    const timer = window.setTimeout(() => setGameNotice(null), 3_500)
+    return () => window.clearTimeout(timer)
+  }, [gameNotice])
+
   return {
-    connection, session, playerId, notice, pending, serverUrl: config.serverUrl,
+    connection, session, playerId, notice, pending, serverUrl: config.serverUrl, game, clockOffset, gameNotice,
+    gameAction(action) { setGameNotice(null); send({ type: 'game.action', action }, 'game') },
     join(roomCode, name) {
       const code = roomCode.trim().toUpperCase()
       if (!roomCodeSchema.safeParse(code).success) return 'Der Raumcode besteht aus sechs Zeichen.'
@@ -214,7 +236,7 @@ export function useController(initialRoomCode: string): ControllerModel {
       if (roomCode) clearPlayerCredentials(roomCode)
       credentialsRef.current = null
       closedRef.current = false
-      setSession(null); setPlayerId(null); setNotice(null); setPending(null); setConnection(socketRef.current?.connected ? 'connected' : 'connecting')
+      setSession(null); setPlayerId(null); setNotice(null); setPending(null); setGame(null); setConnection(socketRef.current?.connected ? 'connected' : 'connecting')
     },
   }
 }

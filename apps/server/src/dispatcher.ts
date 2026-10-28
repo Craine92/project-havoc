@@ -18,16 +18,34 @@ import {
   type ProtocolErrorCode,
   type ServerMessage,
 } from '@project-havoc/protocol'
+import {
+  DEFAULT_CHAOS_TIMING,
+  applyChaosAction,
+  autoActForPlayer,
+  decisionPlayerId,
+  initializeChaosGame,
+  projectChaosPlayer,
+  projectChaosPublic,
+  tickChaosGame,
+  type ChaosAction,
+  type ChaosServices,
+} from '@project-havoc/rules-chaos'
 import type { Server, Socket } from 'socket.io'
 
 import type { ServerConfig } from './config.js'
 import type { Logger } from './logging.js'
 import { RateLimiter } from './rateLimiter.js'
-import type { InMemoryRoomRepository } from './roomRepository.js'
+import type { InMemoryRoomRepository, StoredRoom } from './roomRepository.js'
 
 const CLIENT_EVENT = 'client.message'
 const SERVER_EVENT = 'server.message'
 const ROOM_PREFIX = 'havoc:'
+const GAME_TICK_MS = 400
+/** Nach so langer Abwesenheit zieht der Server automatisch für den Spieler, damit die Partie weiterläuft. */
+const AWAY_AUTO_ACT_MS = 30_000
+
+type GameMessage = Extract<ClientMessage, { type: 'game.action' | 'game.rematch' }>
+type LobbyMessage = Exclude<ClientMessage, { type: 'room.create' | 'room.join' | 'room.reconnect-player' | 'room.reconnect-host' | 'game.action' | 'game.rematch' }>
 
 interface SocketBinding {
   readonly roomId: string
@@ -61,6 +79,8 @@ export class ProtocolDispatcher {
   readonly #actionLimiter: RateLimiter
   readonly #invalidLimiter: RateLimiter
   #closing = false
+  readonly #gameServices: ChaosServices
+  readonly #ticker: ReturnType<typeof setInterval>
 
   constructor(
     private readonly io: Server,
@@ -74,6 +94,9 @@ export class ProtocolDispatcher {
     this.#joinLimiter = new RateLimiter(config.joinRateLimit, now)
     this.#actionLimiter = new RateLimiter(config.actionRateLimit, now)
     this.#invalidLimiter = new RateLimiter(config.invalidMessageRateLimit, now)
+    this.#gameServices = { random: { next: () => Math.random() }, clock: { now } }
+    this.#ticker = setInterval(() => { void this.#tickGames() }, GAME_TICK_MS)
+    this.#ticker.unref()
   }
 
   attach(socket: Socket): void {
@@ -100,6 +123,7 @@ export class ProtocolDispatcher {
 
   shutdown(): void {
     this.#closing = true
+    clearInterval(this.#ticker)
     this.#bindings.clear()
     this.#identitySockets.clear()
     this.#creationLimiter.clear()
@@ -269,6 +293,10 @@ export class ProtocolDispatcher {
     socket: Socket,
     message: Exclude<ClientMessage, { type: 'room.create' | 'room.join' | 'room.reconnect-player' | 'room.reconnect-host' }>,
   ): Promise<void> {
+    if (message.type === 'game.action' || message.type === 'game.rematch') {
+      await this.#gameAction(socket, message)
+      return
+    }
     const binding = this.#bindings.get(socket.id)
     if (!binding) {
       this.#reject(socket, 'NOT_AUTHORIZED', 'The connection has no authenticated identity.', message.actionId)
@@ -291,6 +319,7 @@ export class ProtocolDispatcher {
         this.#reject(socket, result.error.code, result.error.message, message.actionId, result.revision)
         return
       }
+      if (result.session.phase === 'started' && !room.game) this.#startGame(room)
       this.#accept(socket, message.actionId, result.revision, result.replayed)
       await this.#broadcast(binding.roomId)
       if (result.session.phase === 'closed') {
@@ -301,8 +330,110 @@ export class ProtocolDispatcher {
     })
   }
 
+  #startGame(room: StoredRoom): boolean {
+    const identities = room.session.startedPlayerIds.flatMap((playerId) => {
+      const player = room.session.players.find((candidate) => candidate.playerId === playerId)
+      return player ? [{ playerId, name: player.name }] : []
+    })
+    // Zum Ausprobieren: HAVOC_EVENT_SECONDS=30 lässt Ereignisse alle 30 Sekunden statt alle 3 Minuten kommen.
+    const eventSeconds = Number(process.env.HAVOC_EVENT_SECONDS)
+    const timing = Number.isFinite(eventSeconds) && eventSeconds >= 10
+      ? { ...DEFAULT_CHAOS_TIMING, firstEventMs: eventSeconds * 1000, eventIntervalMs: eventSeconds * 1000 }
+      : DEFAULT_CHAOS_TIMING
+    const result = initializeChaosGame(identities, this.#gameServices, timing)
+    if (!result.ok) {
+      this.logger.log('error', { event: 'game.start-failed', roomId: room.session.roomId, detail: result.message })
+      return false
+    }
+    room.game = result.state
+    room.awaySince = new Map()
+    this.logger.log('info', { event: 'game.started', roomId: room.session.roomId })
+    return true
+  }
+
+  async #gameAction(socket: Socket, message: GameMessage): Promise<void> {
+    const binding = this.#bindings.get(socket.id)
+    const room = binding ? this.repository.findById(binding.roomId) : undefined
+    if (!binding || !room) {
+      this.#reject(socket, 'NOT_AUTHORIZED', 'The connection has no authenticated identity.', message.actionId)
+      return
+    }
+    await this.repository.serialize(binding.roomId, async () => {
+      if (message.type === 'game.rematch') {
+        if (binding.role !== 'display-host' || room.session.phase !== 'started') {
+          this.#reject(socket, 'NOT_AUTHORIZED', 'Only the host can start a rematch.', message.actionId)
+          return
+        }
+        if (!this.#startGame(room) || !room.game) {
+          this.#reject(socket, 'GAME_RULE', 'Die neue Runde konnte nicht gestartet werden.', message.actionId)
+          return
+        }
+        this.#accept(socket, message.actionId, room.game.revision, false)
+        await this.#broadcast(binding.roomId)
+        return
+      }
+      if (binding.role !== 'player' || !room.game) {
+        this.#reject(socket, 'WRONG_PHASE', 'Es läuft gerade kein Spiel.', message.actionId)
+        return
+      }
+      const result = applyChaosAction(room.game, this.#toChaosAction(message.action, binding.identityId), this.#gameServices)
+      if (!result.ok) {
+        this.#reject(socket, 'GAME_RULE', result.message, message.actionId, room.game.revision)
+        return
+      }
+      room.game = result.state
+      room.lastActivityAt = this.now()
+      this.#accept(socket, message.actionId, result.state.revision, false)
+      await this.#broadcast(binding.roomId)
+    })
+  }
+
+  #toChaosAction(action: GameMessage extends infer M ? M extends { action: infer A } ? A : never : never, playerId: string): ChaosAction {
+    switch (action.type) {
+      case 'play': return {
+        type: 'play', playerId, cardId: action.cardId,
+        ...(action.color ? { color: action.color } : {}),
+        ...(action.targetId ? { targetId: action.targetId } : {}),
+      }
+      case 'draw': return { type: 'draw', playerId }
+      case 'keep': return { type: 'keep', playerId }
+      case 'havoc': return { type: 'havoc', playerId }
+      case 'catch': return { type: 'catch', playerId, targetId: action.targetId }
+      case 'react': return { type: 'react', playerId, choice: action.choice, ...(action.targetId ? { targetId: action.targetId } : {}) }
+    }
+  }
+
+  async #tickGames(): Promise<void> {
+    if (this.#closing) return
+    for (const [roomId, room] of this.repository.entries()) {
+      if (!room.game || room.game.phase !== 'playing' || room.session.phase !== 'started') continue
+      await this.repository.serialize(roomId, async () => {
+        const game = room.game
+        if (!game || game.phase !== 'playing') return
+        const now = this.now()
+        let next = tickChaosGame(game, this.#gameServices) ?? game
+        const away = room.awaySince ?? new Map<string, number>()
+        room.awaySince = away
+        for (const player of room.session.players) {
+          if (player.connected) away.delete(player.playerId)
+          else if (!away.has(player.playerId)) away.set(player.playerId, now)
+        }
+        const decider = decisionPlayerId(next)
+        const awayAt = decider ? away.get(decider) : undefined
+        if (decider && awayAt !== undefined && now - awayAt >= AWAY_AUTO_ACT_MS && !(next.event && now < next.event.until)) {
+          next = autoActForPlayer(next, decider, this.#gameServices) ?? next
+        }
+        if (next === game) return
+        room.game = next
+        await this.#broadcast(roomId)
+      }).catch((error: unknown) => {
+        this.logger.log('error', { event: 'game.tick-failed', roomId, detail: error instanceof Error ? error.message : 'unknown error' })
+      })
+    }
+  }
+
   #toCommand(
-    message: Exclude<ClientMessage, { type: 'room.create' | 'room.join' | 'room.reconnect-player' | 'room.reconnect-host' }>,
+    message: LobbyMessage,
     binding: SocketBinding,
   ): LobbyCommand | null {
     const metadata = { actionId: message.actionId, expectedRevision: message.expectedRevision }
@@ -382,6 +513,19 @@ export class ProtocolDispatcher {
             allowedActions: [...session.allowedActions],
           },
         } satisfies ServerMessage)
+      }
+      if (room.game && room.session.phase === 'started') {
+        const now = this.now()
+        const game = binding.role === 'display-host'
+          ? projectChaosPublic(room.game, now)
+          : projectChaosPlayer(room.game, binding.identityId, now)
+        if (game) {
+          socket.emit(SERVER_EVENT, {
+            version: PROTOCOL_VERSION,
+            type: 'game.snapshot',
+            game: game as unknown as Extract<ServerMessage, { type: 'game.snapshot' }>['game'],
+          } satisfies ServerMessage)
+        }
       }
     }
   }

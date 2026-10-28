@@ -1,0 +1,97 @@
+/* Gemeinsame Kartenstile. Identische Kopie in apps/tv/src/game/cards.css. */
+.hcard {
+  --w: 4.6rem;
+  --c1: #444; --c2: #222;
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--w);
+  aspect-ratio: 5 / 7.6;
+  border-radius: calc(var(--w) * 0.12);
+  border: calc(var(--w) * 0.05) solid #f5e9cf;
+  background: radial-gradient(circle at 30% 20%, var(--c1), var(--c2));
+  box-shadow: 0 0.35rem 0.9rem rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  color: #fffaf0;
+  font-family: "Pirata One", Georgia, serif;
+  user-select: none;
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+.hcard--sm { --w: 3rem; }
+.hcard--md { --w: 4.6rem; }
+.hcard--lg { --w: 8rem; }
+.hcard--xl { --w: 13rem; }
+.hcard--red { --c1: #ff5a4f; --c2: #a3121d; }
+.hcard--yellow { --c1: #ffd44d; --c2: #c27a00; color: #2b1a00; }
+.hcard--green { --c1: #3fe08a; --c2: #0b7a45; }
+.hcard--blue { --c1: #4fb3ff; --c2: #0d4f9c; }
+.hcard--wild { --c1: #3a2a1a; --c2: #120b06; }
+.hcard--chaos { --c1: #5a1d6e; --c2: #12051a; border-color: #e7c35a; }
+.hcard--back { --c1: #3b1f12; --c2: #120804; border-color: #c9a14a; }
+.hcard--dim { filter: grayscale(0.75) brightness(0.55); }
+.hcard--glow { box-shadow: 0 0 0 0.2rem #ffe28a, 0 0 1.4rem 0.3rem rgba(255, 210, 90, 0.75); }
+.hcard--tint-red { border-color: #ff4b3e; }
+.hcard--tint-yellow { border-color: #ffd23a; }
+.hcard--tint-green { border-color: #2fdc7d; }
+.hcard--tint-blue { border-color: #3da8ff; }
+
+.hcard__oval {
+  display: grid;
+  place-items: center;
+  width: 78%;
+  height: 62%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  transform: rotate(-24deg);
+  box-shadow: inset 0 0 0 calc(var(--w) * 0.02) rgba(0, 0, 0, 0.2);
+}
+.hcard--wild .hcard__oval, .hcard--chaos .hcard__oval, .hcard--back .hcard__oval {
+  background: radial-gradient(circle, rgba(255, 220, 140, 0.25), transparent 70%);
+}
+.hcard__glyph {
+  transform: rotate(24deg);
+  font-size: calc(var(--w) * 0.44);
+  line-height: 1;
+  color: var(--c2);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.hcard--wild .hcard__glyph, .hcard--chaos .hcard__glyph { color: #ffe7a3; text-shadow: 0 0 0.6rem rgba(255, 200, 80, 0.7); }
+.hcard__corner {
+  position: absolute;
+  font-size: calc(var(--w) * 0.2);
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.hcard__corner--tl { top: 6%; left: 9%; }
+.hcard__corner--br { right: 9%; bottom: 6%; transform: rotate(180deg); }
+.hcard__label {
+  position: absolute;
+  bottom: 6%;
+  width: 100%;
+  font-family: system-ui, sans-serif;
+  font-size: calc(var(--w) * 0.11);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  color: #fff7dd;
+}
+.hcard__back-art {
+  font-size: calc(var(--w) * 0.55);
+  color: #e3bd5c;
+  text-shadow: 0 0 0.8rem rgba(227, 189, 92, 0.6);
+}
+.hcard__count {
+  position: absolute;
+  right: -0.5rem;
+  bottom: -0.5rem;
+  min-width: 1.8em;
+  padding: 0.15em 0.4em;
+  border-radius: 999px;
+  background: #e3bd5c;
+  color: #1a0f04;
+  font: 800 calc(var(--w) * 0.18) system-ui, sans-serif;
+  text-align: center;
+}
+.hcard__label ~ .hcard__corner--br { display: none; }

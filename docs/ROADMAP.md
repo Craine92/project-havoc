@@ -298,3 +298,9 @@ Ein Arbeitspaket ist fertig, wenn:
 **Bewusst nicht integriert:** Socket.IO-Gameplay, Lobby-Startkopplung, TV-/Controller-Karten-UI und Chaos. Die vorhandene Alpha-0.1-Lobby bleibt unverändert.
 
 **Vor Alpha 0.2B zu entscheiden:** Startkarte, atomare Rufsemantik und verbindliches Runden-/Matchmodell. Danach folgen Gameplay-Protokollschemas und Serveradapter, Reconnect in Spielzuständen sowie echte Mehrclient-E2E-Partien.
+
+## Chaos-Light (Spieleabend-Edition)
+
+**Umgesetzt:** eigenständige Chaos-Engine in `packages/rules-chaos` (123 Karten, je drei pro Chaos-Karte), Reaktionsfenster für Rettungsring/Kanonenrückschlag, HAVOC-Ruf mit Erwischt-Fenster, vier vollautomatische Ereignisse, Finale ab Minute 20 und Zeitentscheidung bei Minute 25, Server-Anbindung (`game.action`, `game.rematch`, `game.snapshot`), Handy-Kartenhand, TV-Spieltisch mit Einblendungen und optionalen Sounds. Classic ist in der TV-Lobby ausgeblendet.
+
+**Bewusst vereinfacht:** keine +4-Anfechtung, keine Schatzfähigkeiten, keine Ereignisse mit Spielerauswahl (Goblin-Handel, Runenprüfung, Orakel als Wahl), Startkarte wird bis zur Zahlenkarte neu aufgedeckt. Diese Punkte bleiben Kandidaten für Alpha 0.3.

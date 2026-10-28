@@ -36,6 +36,9 @@ function model(overrides: Partial<TvLobbyModel> = {}): TvLobbyModel {
     serverUrl: 'http://127.0.0.1:3000',
     joinUrl: null,
     joinUrlWarning: null,
+    game: null,
+    clockOffset: 0,
+    rematch: vi.fn(),
     createRoom: vi.fn(),
     selectMode: vi.fn(),
     startSession: vi.fn(),
@@ -101,15 +104,13 @@ describe('TV lobby components', () => {
     expect(screen.queryByRole('link')).toBeNull()
   })
 
-  it('uses server allowedActions and does not optimistically change the selected mode', () => {
+  it('selects the chaos mode automatically and offers no classic mode', () => {
     const selectMode = vi.fn()
     const current = session({ selectedMode: 'classic' })
     render(<LobbyScreen model={model({ session: current, selectMode })} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /chaos/i }))
     expect(selectMode).toHaveBeenCalledWith('chaos')
-    expect(screen.getByRole('button', { name: /classic/i }).getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByRole('button', { name: /chaos/i }).getAttribute('aria-pressed')).toBe('false')
+    expect(screen.queryByRole('button', { name: /classic/i })).toBeNull()
   })
 
   it('enables start only when the server projection allows it', () => {
@@ -151,7 +152,7 @@ describe('TV lobby components', () => {
       }),
     })} />)
 
-    expect(screen.getByRole('heading', { name: /portal ist offen/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /segel sind gesetzt/i })).toBeTruthy()
     expect(screen.getByText(/2 spieler sind bereit/i)).toBeTruthy()
     expect(screen.getByText('Nova')).toBeTruthy()
     expect(screen.getByText('Mira')).toBeTruthy()

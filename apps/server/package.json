@@ -12,7 +12,8 @@
   "dependencies": {
     "@project-havoc/game-core": "*",
     "@project-havoc/protocol": "*",
-    "socket.io": "^4.8.4"
+    "socket.io": "^4.8.4",
+    "@project-havoc/rules-chaos": "*"
   },
   "devDependencies": {
     "socket.io-client": "^4.8.4"

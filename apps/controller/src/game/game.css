@@ -1,0 +1,145 @@
+@import './cards.css';
+
+.game-phone {
+  --gold: #e7c35a;
+  --sea: #071a26;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 100dvh;
+  padding: max(0.8rem, env(safe-area-inset-top)) 0.8rem calc(1rem + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(231, 195, 90, 0.16), transparent 60%),
+    linear-gradient(180deg, #0c2a3b 0%, var(--sea) 55%, #04090d 100%);
+  color: #fdf6e3;
+  font-family: system-ui, "Segoe UI", sans-serif;
+  overflow-x: hidden;
+}
+.game-phone--turn { box-shadow: inset 0 0 0 0.3rem rgba(231, 195, 90, 0.75); }
+.game-phone--final { background: radial-gradient(ellipse at 50% 0%, rgba(200, 30, 40, 0.3), transparent 60%), linear-gradient(180deg, #2a0c10, #090304); }
+
+.game-top {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid rgba(231, 195, 90, 0.35);
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.35);
+}
+.game-top__status { display: grid; min-width: 0; }
+.game-top__status strong { font-family: "Pirata One", Georgia, serif; font-size: 1.45rem; font-weight: 400; line-height: 1.1; color: var(--gold); }
+.game-phone--turn .game-top__status strong { animation: pulse-text 1.2s ease-in-out infinite; }
+.game-top__status small { color: #b9c7cf; }
+@keyframes pulse-text { 50% { color: #fff3c4; text-shadow: 0 0 0.8rem rgba(231, 195, 90, 0.9); } }
+
+.gem { width: 2.2rem; height: 2.2rem; border: 2px solid #fff5d6; border-radius: 0.45rem; transform: rotate(45deg); box-shadow: 0 0 1rem currentColor; }
+.gem--red { color: #ff4b3e; background: #e0322a; }
+.gem--yellow { color: #ffd23a; background: #f4b400; }
+.gem--green { color: #2fdc7d; background: #17a35a; }
+.gem--blue { color: #3da8ff; background: #1b72d8; }
+
+.opponents { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.opp { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; border-radius: 999px; background: rgba(255, 255, 255, 0.08); font-size: 0.85rem; }
+.opp b { min-width: 1.4rem; padding: 0 0.3rem; border-radius: 999px; background: rgba(0, 0, 0, 0.4); text-align: center; }
+.opp i { font-style: normal; color: var(--gold); }
+.opp--active { background: rgba(231, 195, 90, 0.3); outline: 1px solid var(--gold); }
+
+.action-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; min-height: 3.2rem; }
+.game-btn {
+  flex: 1 1 auto;
+  min-height: 3.2rem;
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: 0.9rem;
+  background: #263845;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.game-btn:disabled { opacity: 0.5; }
+.game-btn--draw { background: linear-gradient(180deg, #e7c35a, #b88a1d); color: #1b1104; }
+.game-btn--ghost { background: rgba(255, 255, 255, 0.1); }
+.game-btn--havoc { background: linear-gradient(180deg, #ff4b3e, #a3121d); font-family: "Pirata One", Georgia, serif; font-size: 1.6rem; font-weight: 400; letter-spacing: 0.06em; }
+.game-btn--pulse { animation: havoc-pulse 0.9s ease-in-out infinite; }
+.game-btn--shield { background: linear-gradient(180deg, #3fe08a, #0b7a45); }
+.game-btn--mirror { background: linear-gradient(180deg, #ff9f3d, #b44d00); }
+@keyframes havoc-pulse { 50% { transform: scale(1.05); box-shadow: 0 0 1.4rem rgba(255, 75, 62, 0.8); } }
+.havoc-ok { color: var(--gold); font-weight: 700; }
+
+.hand {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0 1rem;
+}
+.hand-card { padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hand-card--playable .hcard { transform: translateY(-0.3rem); }
+.hand-card--playable:active .hcard { transform: translateY(-0.6rem) scale(1.05); }
+.hand-card--drawn .hcard { animation: drawn-bounce 0.9s ease-in-out infinite; }
+@keyframes drawn-bounce { 50% { transform: translateY(-0.8rem); } }
+.hand-help { display: grid; gap: 0.25rem; margin: 0; padding: 0.6rem 0.8rem; border-radius: 0.8rem; background: rgba(90, 29, 110, 0.35); color: #e8d6f0; font-size: 0.85rem; list-style: none; }
+
+.game-toast { padding: 0.6rem 0.8rem; border-radius: 0.8rem; background: #5c1a1a; color: #ffdcdc; font-weight: 600; }
+
+.sheet-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; align-items: end; background: rgba(0, 0, 0, 0.6); }
+.sheet-backdrop--alarm { background: rgba(80, 0, 0, 0.7); }
+.sheet {
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+  padding: 1.2rem 1rem calc(1.2rem + env(safe-area-inset-bottom));
+  border-radius: 1.4rem 1.4rem 0 0;
+  background: #0f2533;
+  border-top: 2px solid var(--gold);
+  animation: sheet-up 180ms ease-out;
+}
+.sheet--alarm { background: #2a0b0e; border-top-color: #ff4b3e; }
+.sheet h2 { margin: 0; font-family: "Pirata One", Georgia, serif; font-size: 1.7rem; font-weight: 400; text-align: center; }
+.sheet .game-btn { width: 100%; }
+@keyframes sheet-up { from { transform: translateY(100%); } }
+.color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; width: 100%; }
+.color-pick { min-height: 4.2rem; border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 1rem; color: #fff; font-size: 1.2rem; font-weight: 800; text-shadow: 0 1px 2px #000; }
+.color-pick--red { background: #d42a22; }
+.color-pick--yellow { background: #e8a800; }
+.color-pick--green { background: #14984f; }
+.color-pick--blue { background: #1a66c4; }
+.target-list { display: grid; gap: 0.5rem; width: 100%; }
+.target-pick { display: flex; justify-content: space-between; align-items: center; min-height: 3.4rem; padding: 0 1rem; border: 1px solid rgba(231, 195, 90, 0.5); border-radius: 0.9rem; background: rgba(255, 255, 255, 0.06); color: #fff; font-size: 1.1rem; font-weight: 700; }
+.target-pick b { color: var(--gold); font-weight: 600; }
+.reaction-actions { display: grid; gap: 0.6rem; width: 100%; }
+
+.catch-button {
+  position: fixed;
+  right: 0.8rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  left: 0.8rem;
+  z-index: 15;
+  display: grid;
+  min-height: 5rem;
+  border: 3px solid #fff;
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg, #ff4b3e, #8e0d16);
+  color: #fff;
+  font-family: "Pirata One", Georgia, serif;
+  font-size: 2rem;
+  animation: havoc-pulse 0.6s ease-in-out infinite;
+}
+.catch-button small { font-family: system-ui, sans-serif; font-size: 0.9rem; }
+.catch-button--self { background: linear-gradient(180deg, #e7c35a, #9c6d0c); color: #1b1104; }
+
+.event-strip { position: fixed; top: 0.6rem; right: 0.6rem; left: 0.6rem; z-index: 12; display: grid; gap: 0.4rem; justify-items: center; padding: 0.8rem; border: 2px solid var(--gold); border-radius: 1rem; background: rgba(12, 20, 28, 0.95); text-align: center; }
+.reveal { display: grid; justify-items: center; gap: 0.4rem; }
+
+.game-phone--finished { justify-content: center; align-items: center; text-align: center; }
+.game-phone--finished h1 { margin: 0; font-family: "Pirata One", Georgia, serif; font-size: 2.4rem; font-weight: 400; color: var(--gold); }
+.finish-burst { font-size: 5rem; }
+.game-phone--won .finish-burst { animation: havoc-pulse 1s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .game-phone *, .game-phone *::before { animation: none !important; transition: none !important; }
+}

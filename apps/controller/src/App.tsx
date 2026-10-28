@@ -3,13 +3,14 @@ import { useMemo, useState } from 'react'
 import { roomCodeFromUrl } from './config.js'
 import type { ControllerConnection, ControllerModel } from './types.js'
 import { useController } from './useController.js'
+import { GameScreen } from './game/GameScreen.js'
 
 const connectionLabels: Record<ControllerConnection, string> = {
   connecting: 'Verbinden …', connected: 'Server verbunden', unavailable: 'Server offline', lost: 'Verbindung verloren', reconnecting: 'Wiederherstellen …', 'protocol-error': 'Protokollfehler',
 }
 
 function Mark(): React.JSX.Element {
-  return <div className="phone-mark" aria-hidden="true">✦</div>
+  return <div className="phone-mark" aria-hidden="true">☠</div>
 }
 
 function Status({ state }: { readonly state: ControllerConnection }): React.JSX.Element {
@@ -32,8 +33,8 @@ export function JoinScreen({ model, initialCode }: { readonly model: ControllerM
     <main className="phone-shell phone-join">
       <header className="phone-brand"><Mark /><div><small>Project</small><strong>Havoc</strong></div></header>
       <section className="phone-hero">
-        <span className="phone-kicker">Tritt der Crew bei</span>
-        <h1>Dein Portal<br />ins Chaos.</h1>
+        <span className="phone-kicker">Ahoi, Landratte!</span>
+        <h1>Komm an Bord<br />ins Chaos.</h1>
         <p>Code vom Fernseher eingeben, Namen wählen und loslegen.</p>
       </section>
       <form className="join-form" onSubmit={submit} noValidate>
@@ -41,7 +42,7 @@ export function JoinScreen({ model, initialCode }: { readonly model: ControllerM
         <label><span>Dein Name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="nickname" maxLength={32} placeholder="Wie sollen wir dich nennen?" required /></label>
         {(localError || model.notice) && <div className="phone-notice" role="alert">{localError ?? model.notice}</div>}
         <button className="phone-button phone-button--primary" disabled={model.connection !== 'connected' || submitting}>
-          {submitting ? 'Portal wird geöffnet …' : 'Raum beitreten'} <span aria-hidden="true">→</span>
+          {submitting ? 'Gangway wird ausgefahren …' : 'Raum beitreten'} <span aria-hidden="true">→</span>
         </button>
         {model.connection === 'unavailable' && <button type="button" className="phone-button phone-button--ghost" onClick={model.retry}>Erneut verbinden</button>}
       </form>
@@ -99,13 +100,14 @@ function StartedScreen({ model }: { readonly model: ControllerModel }): React.JS
 }
 
 function ClosedScreen({ model }: { readonly model: ControllerModel }): React.JSX.Element {
-  return <main className="phone-shell centered-state"><Mark /><span className="phone-kicker">Raum geschlossen</span><h1>Das Portal ist erloschen.</h1><p>Der Host hat diese Sitzung beendet.</p><button className="phone-button phone-button--primary" onClick={model.forgetSession}>Anderen Raum suchen</button></main>
+  return <main className="phone-shell centered-state"><Mark /><span className="phone-kicker">Raum geschlossen</span><h1>Das Schiff hat abgelegt.</h1><p>Der Host hat diese Sitzung beendet.</p><button className="phone-button phone-button--primary" onClick={model.forgetSession}>Anderen Raum suchen</button></main>
 }
 
 export function ControllerApp(): React.JSX.Element {
   const initialCode = useMemo(() => roomCodeFromUrl(), [])
   const model = useController(initialCode)
   if (!model.session) return <JoinScreen model={model} initialCode={initialCode} />
+  if (model.session.phase === 'started' && model.game) return <GameScreen model={model} game={model.game} />
   if (model.session.phase === 'started') return <StartedScreen model={model} />
   if (model.session.phase === 'closed') return <ClosedScreen model={model} />
   return <LobbyScreen model={model} />

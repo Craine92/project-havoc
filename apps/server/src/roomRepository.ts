@@ -1,10 +1,14 @@
 import type { LobbySession } from '@project-havoc/game-core'
+import type { ChaosGameState } from '@project-havoc/rules-chaos'
 
 export interface StoredRoom {
   session: LobbySession
   lastActivityAt: number
   closedAt?: number
   connectionCount: number
+  game?: ChaosGameState
+  /** Seit wann ein Spieler während der Partie getrennt ist (für den Auto-Zug). */
+  awaySince?: Map<string, number>
 }
 
 export interface RoomRetention {
@@ -91,6 +95,10 @@ export class InMemoryRoomRepository {
     this.#roomsById.clear()
     this.#roomIdByCode.clear()
     this.#queues.clear()
+  }
+
+  entries(): IterableIterator<[string, StoredRoom]> {
+    return this.#roomsById.entries()
   }
 
   get size(): number {

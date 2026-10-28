@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { PrivateSessionView } from '@project-havoc/protocol'
 
 import type { ConnectionState, TvLobbyModel } from './types.js'
 import { useTvLobby } from './useTvLobby.js'
 import { QrCode } from './QrCode.js'
+import { TvGameScreen } from './game/TvGameScreen.js'
 
-const VERSION = `Alpha 0.1C · Protokoll 1`
+const VERSION = `Chaos-Light · Freitag-Edition`
 
 const CONNECTION_LABELS: Record<ConnectionState, string> = {
   connecting: 'Verbindung wird hergestellt',
@@ -61,9 +62,9 @@ export function StartScreen({ model }: { readonly model: TvLobbyModel }): React.
       <section className="start-hero">
         <Brand />
         <p className="start-hero__kicker">Versammelt eure Crew</p>
-        <h1>Ein Bildschirm.<br /><em>Maximales Chaos.</em></h1>
+        <h1>Ein Schiff.<br /><em>Maximales Chaos.</em></h1>
         <p className="start-hero__copy">
-          Erschaffe eine Lobby und verbinde bis zu acht Smartphones für eure nächste magische Eskalation.
+          Erstelle einen Raum, scannt den QR-Code mit euren Handys und los geht die Meuterei – für 2 bis 8 Piraten.
         </p>
 
         <button className="button button--primary button--hero" onClick={model.createRoom} disabled={!canCreate}>
@@ -121,8 +122,12 @@ function PlayerGrid({ session }: { readonly session: PrivateSessionView }): Reac
 export function LobbyScreen({ model }: { readonly model: TvLobbyModel }): React.JSX.Element {
   const [confirmClose, setConfirmClose] = useState(false)
   const session = model.session
+  // Es gibt nur noch den Chaos-Modus: automatisch auswählen.
+  const needsChaos = session?.selectedMode !== 'chaos' && (session?.allowedActions.includes('room.set-mode') ?? false)
+  useEffect(() => {
+    if (needsChaos && model.pendingAction === null) model.selectMode('chaos')
+  }, [needsChaos, model])
   if (!session) return <StartScreen model={model} />
-  const canSetMode = session.allowedActions.includes('room.set-mode')
   const canStart = session.allowedActions.includes('room.start')
   const canClose = session.allowedActions.includes('room.close')
   const readyCount = session.players.filter((player) => player.connected && player.ready).length
@@ -164,29 +169,15 @@ export function LobbyScreen({ model }: { readonly model: TvLobbyModel }): React.
           <div className="section-heading section-heading--compact">
             <div>
               <span className="panel-label">Spielmodus</span>
-              <h2>Wählt euer Schicksal</h2>
+              <h2>Auf hoher See</h2>
             </div>
             {model.pendingAction === 'set-mode' && <span className="pending-label">Server prüft …</span>}
           </div>
           <div className="mode-options">
-            <button
-              className={`mode-card ${session.selectedMode === 'classic' ? 'mode-card--selected' : ''}`}
-              disabled={!canSetMode || model.pendingAction !== null}
-              onClick={() => model.selectMode('classic')}
-              aria-pressed={session.selectedMode === 'classic'}
-            >
-              <span className="mode-card__icon mode-card__icon--classic">◇</span>
-              <span><strong>Classic</strong><small>Pur. Schnell. Unerbittlich.</small></span>
-            </button>
-            <button
-              className={`mode-card mode-card--chaos ${session.selectedMode === 'chaos' ? 'mode-card--selected' : ''}`}
-              disabled={!canSetMode || model.pendingAction !== null}
-              onClick={() => model.selectMode('chaos')}
-              aria-pressed={session.selectedMode === 'chaos'}
-            >
-              <span className="mode-card__icon mode-card__icon--chaos">✦</span>
-              <span><strong>Chaos</strong><small>Magie bricht alle Regeln.</small></span>
-            </button>
+            <div className="mode-card mode-card--chaos mode-card--selected" aria-label="Chaos-Modus">
+              <span className="mode-card__icon mode-card__icon--chaos">☠</span>
+              <span><strong>Chaos</strong><small>Meuterei, Strudel, Kraken – nichts läuft nach Plan.</small></span>
+            </div>
           </div>
         </section>
 
@@ -236,7 +227,7 @@ export function StartedScreen({ model }: { readonly model: TvLobbyModel }): Reac
       <Brand />
       <div className="state-screen__rune" aria-hidden="true">✦</div>
       <span className="panel-label">Sitzung gestartet</span>
-      <h1>Das Portal ist offen.</h1>
+      <h1>Die Segel sind gesetzt.</h1>
       <p><strong>{session?.selectedMode?.toUpperCase() ?? 'CLASSIC'}</strong> · {startedPlayers.length} Spieler sind bereit. Das eigentliche Gameplay folgt in einer späteren Alpha.</p>
       <div className="started-players" aria-label="Gestartete Spieler">
         {startedPlayers.map((player) => <span key={player.playerId}>{player.name}</span>)}
@@ -252,7 +243,7 @@ export function ClosedScreen({ model }: { readonly model: TvLobbyModel }): React
       <Brand />
       <div className="state-screen__rune state-screen__rune--dim" aria-hidden="true">◇</div>
       <span className="panel-label">Raum geschlossen</span>
-      <h1>Die Energie ist verflogen.</h1>
+      <h1>Das Schiff hat abgelegt.</h1>
       <p>Alle Verbindungen wurden beendet. Du kannst jederzeit eine neue Sitzung erschaffen.</p>
       <button className="button button--primary" onClick={model.resetSession}>Zurück zum Start</button>
     </main>
@@ -263,6 +254,7 @@ export function TvLobbyApp(): React.JSX.Element {
   const model = useTvLobby()
   if (!model.session) return <StartScreen model={model} />
   if (model.session.phase === 'closed') return <ClosedScreen model={model} />
+  if (model.session.phase === 'started' && model.game) return <TvGameScreen model={model} game={model.game} />
   if (model.session.phase === 'started') return <StartedScreen model={model} />
   return <LobbyScreen model={model} />
 }
