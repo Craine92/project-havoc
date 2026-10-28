@@ -1,6 +1,8 @@
 export interface TvRuntimeConfig {
   readonly serverUrl: string
   readonly publicJoinBaseUrl: string | null
+  readonly publicJoinError: string | null
+  readonly allowLoopbackJoinUrl: boolean
 }
 
 function validHttpUrl(value: string): string | null {
@@ -19,23 +21,38 @@ export function loadTvConfig(location: Location = window.location): TvRuntimeCon
   if (!serverUrl) throw new Error('VITE_HAVOC_SERVER_URL must be an HTTP or HTTPS URL')
 
   const configuredJoinUrl = import.meta.env.VITE_PUBLIC_JOIN_URL?.trim()
+  const validJoinUrl = configuredJoinUrl ? validHttpUrl(configuredJoinUrl) : null
   return {
     serverUrl: serverUrl.replace(/\/$/, ''),
-    publicJoinBaseUrl: configuredJoinUrl ? validHttpUrl(configuredJoinUrl) : null,
+    publicJoinBaseUrl: validJoinUrl,
+    publicJoinError: configuredJoinUrl && !validJoinUrl
+      ? 'Die konfigurierte Controller-URL ist ungültig. Prüfe VITE_PUBLIC_JOIN_URL oder starte mit npm run dev.'
+      : null,
+    allowLoopbackJoinUrl: import.meta.env.VITE_ALLOW_LOOPBACK_JOIN_URL === 'true',
   }
 }
 
 export function createJoinUrl(config: TvRuntimeConfig, roomCode: string): {
-  readonly url: string
-  readonly warning: string | null
+  readonly url: string | null
+  readonly warning: string
 } {
-  const base = config.publicJoinBaseUrl ?? `${window.location.origin}/join`
-  const url = new URL(base)
+  if (!config.publicJoinBaseUrl) {
+    return {
+      url: null,
+      warning: config.publicJoinError
+        ?? 'Keine erreichbare Controller-Adresse erkannt. Starte das Projekt mit npm run dev oder setze VITE_PUBLIC_JOIN_URL manuell.',
+    }
+  }
+  const url = new URL(config.publicJoinBaseUrl)
+  if (!config.allowLoopbackJoinUrl && (url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '[::1]')) {
+    return {
+      url: null,
+      warning: 'Die Controller-Adresse zeigt auf localhost und ist für Smartphones nicht erreichbar. Starte mit npm run dev.',
+    }
+  }
   url.searchParams.set('room', roomCode)
   return {
     url: url.toString(),
-    warning: config.publicJoinBaseUrl
-      ? null
-      : 'LAN-Link nicht konfiguriert. Setze VITE_PUBLIC_JOIN_URL auf die erreichbare Controller-Adresse.',
+    warning: '',
   }
 }

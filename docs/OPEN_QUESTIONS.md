@@ -153,6 +153,13 @@ Gameplay-Konflikte bleiben bis Alpha 0.2 dokumentiert offen und dürfen in Auftr
 - Zielbreiten 320, 375, 390 und 430 Pixel sind automatisiert geprüft.
 - TV, zwei getrennte Smartphone-Kontexte und ein Acht-Spieler-Beitritt sind mit dem echten Server getestet.
 
+## Technischer Stand nach Hotfix 006.2
+
+- `npm run dev` ermittelt über den LAN-Launcher die aktive Windows-Standardroute und startet Backend, TV und Controller gemeinsam.
+- Mehrere plausible Standardrouten werden nicht automatisch aufgelöst; `HAVOC_LAN_IP` bleibt der bewusste manuelle Fallback.
+- Join-Links verwenden den Controller-Origin und `/join?room=…`; ohne gültige Nicht-Loopback-Adresse entsteht kein QR-Code.
+- Offen bleiben reale Geräteabnahme, WLAN-Client-Isolation, Firewallfreigabe und die spätere HTTPS-Strategie.
+
 ## Priorisierte Entscheidungen für Auftrag 007
 
 - Ob A01.6 zunächst als Hardware-/Netzwerkstabilisierung oder bereits als Einstieg in Alpha 0.2 Classic geschnitten wird.

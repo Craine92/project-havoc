@@ -11,6 +11,31 @@ Project Havoc is a browser-based local multiplayer party game. Alpha 0.1D provid
 npm install
 ```
 
+## Start on the local network (recommended)
+
+Open PowerShell in the project directory and run:
+
+```powershell
+npm run dev
+```
+
+`npm run dev` delegates to `dev:lan`. The launcher selects the active physical IPv4 interface through the Windows default route, binds all three services only to that address, configures the exact CORS origins, and prints all three LAN URLs. Open the displayed TV URL and scan its QR code. Stop the complete process group with `Ctrl+C`.
+
+If Windows has multiple active default routes, the launcher refuses to guess. Select an address shown by `npm run doctor` explicitly:
+
+```powershell
+$env:HAVOC_LAN_IP='192.168.x.x'
+npm run dev
+```
+
+Use an address actually assigned to the PC; do not copy the placeholder. `HAVOC_SERVER_PORT`, `HAVOC_TV_PORT`, and `HAVOC_CONTROLLER_PORT` optionally override ports 3000, 5173, and 5174. Manual `.env.local` files are no longer needed for the normal LAN workflow.
+
+For a read-only diagnosis of adapter selection, configured ports, and currently reachable services:
+
+```powershell
+npm run doctor
+```
+
 ## Run the multiplayer server
 
 ```powershell
@@ -40,33 +65,35 @@ npm run dev:tv
 
 Then open `http://127.0.0.1:5173`. The TV derives its default server endpoint as the current hostname on port 3000.
 
-For LAN use, copy `apps/tv/.env.example` to the ignored file `apps/tv/.env.local` and replace loopback addresses with the PC's reachable LAN hostname or address:
+For an exceptional manual setup, copy `apps/tv/.env.example` to the ignored file `apps/tv/.env.local` and replace loopback addresses with the PC's reachable LAN hostname or address:
 
 ```dotenv
 VITE_HAVOC_SERVER_URL=http://192.168.1.20:3000
 VITE_PUBLIC_JOIN_URL=http://192.168.1.20:5174/join
 ```
 
-Start the server and TV with LAN binding and exact CORS origins:
+Then start the server and UIs individually with LAN binding and exact CORS origins. The normal `npm run dev` workflow performs this automatically:
 
 ```powershell
 $env:HOST='0.0.0.0'
-$env:CORS_ORIGINS='http://192.168.1.20:5173'
+$env:CORS_ORIGINS='http://192.168.1.20:5173,http://192.168.1.20:5174'
 $env:RECONNECT_TOKEN_SECRET='replace-with-at-least-32-bytes-of-random-secret'
 npm run dev:server
 ```
 
 ```powershell
-npm run dev:tv -- --host 0.0.0.0
+npm run dev:tv -- --host 0.0.0.0 --port 5173
 ```
 
-The join URL is displayed, encoded into a locally generated QR code, and opens the controller with the room code prefilled. The TV shows a warning when `VITE_PUBLIC_JOIN_URL` is absent; it never guesses or exposes a private network address.
+The join URL is displayed, encoded into a locally generated QR code, and opens the controller with the room code prefilled. Without a valid non-loopback `VITE_PUBLIC_JOIN_URL`, the TV shows guidance and deliberately renders no QR code instead of inventing a TV or localhost URL.
 
 ## Run the smartphone controller
 
 ```powershell
 npm run dev:controller -- --host 0.0.0.0 --port 5174
 ```
+
+The `--` after the root script name is required: it forwards `--host` and `--port` through npm's workspace wrapper to Vite.
 
 Set `VITE_HAVOC_SERVER_URL` in `apps/controller/.env.local` for LAN use. The complete three-terminal Windows procedure and hardware test checklist are in [MANUAL_MULTIPLAYER_TEST.md](docs/MANUAL_MULTIPLAYER_TEST.md).
 

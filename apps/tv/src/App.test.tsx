@@ -58,6 +58,20 @@ describe('TV lobby components', () => {
     expect(createRoom).toHaveBeenCalledOnce()
   })
 
+  it('shows creation progress, prevents duplicate clicks, and offers a retry after failure', () => {
+    const createRoom = vi.fn()
+    const { rerender } = render(<StartScreen model={model({ createRoom, pendingAction: 'create' })} />)
+
+    const pendingButton = screen.getByRole('button', { name: /raum wird erschaffen/i })
+    expect(pendingButton.hasAttribute('disabled')).toBe(true)
+    fireEvent.click(pendingButton)
+    expect(createRoom).not.toHaveBeenCalled()
+
+    rerender(<StartScreen model={model({ createRoom, notice: 'Raumerstellung fehlgeschlagen' })} />)
+    fireEvent.click(screen.getByRole('button', { name: /erneut versuchen/i }))
+    expect(createRoom).toHaveBeenCalledOnce()
+  })
+
   it('disables room creation while the server is unavailable', () => {
     render(<StartScreen model={model({ connection: 'unavailable', notice: 'Server offline' })} />)
 
@@ -73,6 +87,18 @@ describe('TV lobby components', () => {
     expect(screen.getByTestId('room-code').textContent).toContain('HVC234')
     expect(screen.getAllByText('Freier Platz')).toHaveLength(8)
     expect(screen.getByRole('button', { name: /spiel starten/i }).hasAttribute('disabled')).toBe(true)
+  })
+
+  it('shows configuration guidance and no QR code when no reachable controller URL exists', () => {
+    render(<LobbyScreen model={model({
+      session: session(),
+      joinUrl: null,
+      joinUrlWarning: 'Keine erreichbare Controller-Adresse erkannt. Starte mit npm run dev.',
+    })} />)
+
+    expect(screen.getByText(/npm run dev/i)).toBeTruthy()
+    expect(document.querySelector('.qr-code')).toBeNull()
+    expect(screen.queryByRole('link')).toBeNull()
   })
 
   it('uses server allowedActions and does not optimistically change the selected mode', () => {

@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { io, type Socket } from 'socket.io-client'
 
 import { normalizePlayerName } from '@project-havoc/game-core'
-import { PROTOCOL_VERSION, roomCodeSchema, validateClientMessage, validateServerMessage, type ClientMessage, type PrivateSessionView, type ServerMessage } from '@project-havoc/protocol'
+import { PROTOCOL_VERSION, createActionId, roomCodeSchema, validateClientMessage, validateServerMessage, type ClientMessage, type PrivateSessionView, type ServerMessage } from '@project-havoc/protocol'
 
 import { loadControllerConfig } from './config.js'
 import { clearPlayerCredentials, loadPlayerCredentials, savePlayerCredentials, type PlayerCredentials } from './credentials.js'
 import type { ControllerAction, ControllerConnection, ControllerModel } from './types.js'
 
-const actionId = (kind: string): string => `phone_${kind}_${crypto.randomUUID().replaceAll('-', '')}`
+const actionId = (kind: string): string => createActionId(`phone_${kind}`)
 
 function rejectionText(message: Extract<ServerMessage, { type: 'action.rejected' }>): string {
   switch (message.error.code) {
@@ -41,7 +41,7 @@ export function useController(initialRoomCode: string): ControllerModel {
     const socket = socketRef.current
     if (!socket?.connected) {
       setConnection(credentialsRef.current ? 'lost' : 'unavailable')
-      setNotice('Der Server ist nicht erreichbar. Prüfe WLAN und Serveradresse.')
+      setNotice('Backend nicht erreichbar. Prüfe, ob npm run dev läuft, beide Geräte im selben WLAN sind und Node.js im privaten Firewall-Netz erlaubt ist.')
       return
     }
     pendingKinds.current.set(message.actionId, kind)
@@ -86,7 +86,7 @@ export function useController(initialRoomCode: string): ControllerModel {
     const onConnect = (): void => { if (credentialsRef.current) reconnect(); else setConnection('connected') }
     const onConnectError = (): void => {
       setConnection(credentialsRef.current ? 'reconnecting' : 'unavailable')
-      setNotice('Der Havoc-Server ist nicht erreichbar.')
+      setNotice('Backend nicht erreichbar. Prüfe npm run dev, WLAN und die Windows-Firewall für private Netzwerke.')
     }
     const onDisconnect = (): void => {
       if (closedRef.current) return

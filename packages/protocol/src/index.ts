@@ -1,3 +1,6 @@
+export { createActionId } from './actionId.js'
+export type { RandomByteFiller } from './actionId.js'
+
 export {
   PROTOCOL_VERSION,
   allowedActionSchema,

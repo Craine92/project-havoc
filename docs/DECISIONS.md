@@ -344,6 +344,26 @@ Dieses Dokument ist ein leichtgewichtiges Entscheidungsprotokoll. Der Status lau
 
 **Verworfene Alternativen:** Vorsorgliches `client-core`-Framework ohne dritten Verbraucher; Copy/Paste der Protokollschemas.
 
+## D-035 – Sicherer automatischer LAN-Launcher
+
+**Status:** Entschieden und umgesetzt für Hotfix 006.2
+
+**Entscheidung:** `npm run dev` (Alias für `dev:lan`) wählt unter Windows eine geeignete physische IPv4-Adresse anhand der Standardroute, startet alle drei Dienste mit konsistenten URLs und exakter CORS-Allowlist und verwaltet sie als gemeinsame Prozessgruppe. Mehrere plausible Routen führen zu einem Abbruch mit explizitem `HAVOC_LAN_IP`-Fallback. Ohne verifizierte Controller-Basis zeigt der TV keinen QR-Code.
+
+**Begründung:** Browser können die vom Smartphone erreichbare Hostadresse nicht zuverlässig bestimmen. Die Node-Startschicht besitzt dagegen Routing- und Prozesskontext und kann Mehrdeutigkeit sichtbar behandeln, ohne Firewall oder Router zu verändern.
+
+**Verworfene Alternativen:** TV-Origin als Join-Fallback; fest codierte private IP; Auswahl des ersten Netzwerkadapters; Wildcard-CORS; automatische Firewalländerung.
+
+## D-036 – Action-IDs im unsicheren LAN-Browserkontext
+
+**Status:** Entschieden und umgesetzt für Hotfix 006.3
+
+**Entscheidung:** Browserclients erzeugen Protokoll-Action-IDs mit `crypto.getRandomValues` statt `crypto.randomUUID`. Raumerstellung und andere ausstehende TV-Aktionen erhalten zusätzlich einen endlichen Antwort-Timeout mit sichtbarem Retry-Zustand.
+
+**Begründung:** `crypto.randomUUID` ist in Browsern nur in sicheren Kontexten verfügbar; die lokale Alpha verwendet bewusst HTTP auf einer privaten LAN-Adresse. Der Fehler trat daher auf echten LAN-URLs auf, obwohl localhost-E2E erfolgreich war.
+
+**Verworfene Alternativen:** lokale Fake-IDs; `Math.random`; HTTPS-Zwang nur zur Fehlerumgehung; unbegrenzter Ladezustand.
+
 ## Offene technische Entscheidungen
 
 | ID | Frage | Benötigt vor |

@@ -3,6 +3,7 @@ import { io, type Socket } from 'socket.io-client'
 
 import {
   PROTOCOL_VERSION,
+  createActionId,
   validateClientMessage,
   validateServerMessage,
   type ClientMessage,
@@ -20,7 +21,7 @@ import {
 import type { ConnectionState, HostAction, TvLobbyModel } from './types.js'
 
 function newActionId(label: string): string {
-  return `tv_${label}_${crypto.randomUUID().replaceAll('-', '')}`
+  return createActionId(`tv_${label}`)
 }
 
 function friendlyError(message: Extract<ServerMessage, { type: 'action.rejected' }>): string {
@@ -38,7 +39,10 @@ function friendlyError(message: Extract<ServerMessage, { type: 'action.rejected'
 
 interface PendingRequest {
   readonly kind: HostAction
+  readonly timeoutId: number
 }
+
+export const ACTION_RESPONSE_TIMEOUT_MS = 8_000
 
 export function useTvLobby(): TvLobbyModel {
   const runtime = useMemo(() => loadTvConfig(), [])
@@ -51,18 +55,40 @@ export function useTvLobby(): TvLobbyModel {
   const pendingRef = useRef(new Map<string, PendingRequest>())
   const closedRef = useRef(false)
 
+  const finishPending = useCallback((actionId: string): PendingRequest | undefined => {
+    const pending = pendingRef.current.get(actionId)
+    if (!pending) return undefined
+    window.clearTimeout(pending.timeoutId)
+    pendingRef.current.delete(actionId)
+    setPendingAction((current) => current === pending.kind ? null : current)
+    return pending
+  }, [])
+
+  const clearPending = useCallback((): void => {
+    for (const pending of pendingRef.current.values()) window.clearTimeout(pending.timeoutId)
+    pendingRef.current.clear()
+    setPendingAction(null)
+  }, [])
+
   const emit = useCallback((message: ClientMessage, kind: HostAction): void => {
     const socket = socketRef.current
     if (!socket?.connected) {
       setConnection(credentialsRef.current ? 'lost' : 'unavailable')
-      setNotice('Der Server ist momentan nicht erreichbar.')
+      setNotice('Backend nicht gestartet oder nicht erreichbar. Starte mit npm run dev und prüfe die ausgegebene Backend-Adresse.')
       return
     }
-    pendingRef.current.set(message.actionId, { kind })
+    if ([...pendingRef.current.values()].some((pending) => pending.kind === kind)) return
+    const timeoutId = window.setTimeout(() => {
+      if (!finishPending(message.actionId)) return
+      setNotice(kind === 'create'
+        ? 'Der Server hat die Raumerstellung nicht rechtzeitig bestätigt. Bitte erneut versuchen.'
+        : 'Der Server hat die Aktion nicht rechtzeitig bestätigt. Bitte erneut versuchen.')
+    }, ACTION_RESPONSE_TIMEOUT_MS)
+    pendingRef.current.set(message.actionId, { kind, timeoutId })
     setPendingAction(kind)
     setNotice(null)
     socket.emit('client.message', message)
-  }, [])
+  }, [finishPending])
 
   const reconnectHost = useCallback((): void => {
     const credentials = credentialsRef.current
@@ -106,11 +132,12 @@ export function useTvLobby(): TvLobbyModel {
       setConnection(credentialsRef.current ? 'reconnecting' : 'unavailable')
       setNotice(credentialsRef.current
         ? 'Die Verbindung ist unterbrochen. Wiederherstellung läuft …'
-        : 'Der Havoc-Server ist nicht erreichbar.')
+        : 'Backend nicht gestartet oder nicht erreichbar. Starte mit npm run dev.')
     }
 
     function onDisconnect(): void {
       if (closedRef.current) return
+      clearPending()
       setConnection(credentialsRef.current ? 'lost' : 'unavailable')
       setNotice('Verbindung verloren. Der Client versucht, die Sitzung wiederherzustellen.')
     }
@@ -151,14 +178,11 @@ export function useTvLobby(): TvLobbyModel {
         return
       }
       if (message.type === 'action.accepted') {
-        pendingRef.current.delete(message.actionId)
-        setPendingAction(null)
+        finishPending(message.actionId)
         return
       }
       if (message.type === 'action.rejected') {
-        const pending = message.actionId ? pendingRef.current.get(message.actionId) : undefined
-        if (message.actionId) pendingRef.current.delete(message.actionId)
-        setPendingAction(null)
+        const pending = message.actionId ? finishPending(message.actionId) : undefined
         setNotice(friendlyError(message))
         if (pending?.kind === 'reconnect') {
           const invalidSession = message.error.code === 'ROOM_NOT_FOUND'
@@ -206,6 +230,7 @@ export function useTvLobby(): TvLobbyModel {
     socket.io.on('reconnect_failed', onReconnectFailed)
     socket.on('server.message', onServerMessage)
     socket.connect()
+    const pendingRequests = pendingRef.current
 
     return () => {
       socket.off('connect', onConnect)
@@ -214,10 +239,12 @@ export function useTvLobby(): TvLobbyModel {
       socket.off('server.message', onServerMessage)
       socket.io.off('reconnect_attempt', onReconnectAttempt)
       socket.io.off('reconnect_failed', onReconnectFailed)
+      for (const pending of pendingRequests.values()) window.clearTimeout(pending.timeoutId)
+      pendingRequests.clear()
       socket.disconnect()
       socketRef.current = null
     }
-  }, [reconnectHost, runtime.serverUrl])
+  }, [clearPending, finishPending, reconnectHost, runtime.serverUrl])
 
   const sendHostAction = useCallback((value: object, kind: HostAction): void => {
     const revision = session?.revision ?? credentialsRef.current?.revision ?? 0
@@ -258,7 +285,7 @@ export function useTvLobby(): TvLobbyModel {
       clearHostCredentials()
       credentialsRef.current = null
       closedRef.current = false
-      pendingRef.current.clear()
+      clearPending()
       setSession(null)
       setPendingAction(null)
       setNotice(null)

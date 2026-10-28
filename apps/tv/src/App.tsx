@@ -67,7 +67,7 @@ export function StartScreen({ model }: { readonly model: TvLobbyModel }): React.
         </p>
 
         <button className="button button--primary button--hero" onClick={model.createRoom} disabled={!canCreate}>
-          <span>{model.pendingAction === 'create' ? 'Raum wird erschaffen …' : 'Neues Spiel'}</span>
+          <span>{model.pendingAction === 'create' ? 'Raum wird erschaffen …' : model.notice && model.connection === 'connected' ? 'Erneut versuchen' : 'Neues Spiel'}</span>
           <span aria-hidden="true">↗</span>
         </button>
 
@@ -144,7 +144,7 @@ export function LobbyScreen({ model }: { readonly model: TvLobbyModel }): React.
           <span className="panel-label">Dein Raumcode</span>
           <strong className="room-code" data-testid="room-code">{session.roomCode}</strong>
           <p className="join-panel__hint">Auf dem Smartphone öffnen und Code eingeben</p>
-          <a className="join-url" href={model.joinUrl ?? undefined}>{model.joinUrl}</a>
+          {model.joinUrl && <a className="join-url" href={model.joinUrl}>{model.joinUrl}</a>}
           {model.joinUrlWarning && <p className="lan-warning">{model.joinUrlWarning}</p>}
           {model.joinUrl && <QrCode value={model.joinUrl} />}
         </aside>

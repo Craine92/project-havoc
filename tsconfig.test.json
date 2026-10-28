@@ -13,5 +13,5 @@
       "@project-havoc/test-support": ["./packages/test-support/src/index.ts"]
     }
   },
-  "include": ["packages/**/*.test.ts", "apps/**/*.test.ts", "apps/**/*.test.tsx"]
+  "include": ["packages/**/*.test.ts", "apps/**/*.test.ts", "apps/**/*.test.tsx", "scripts/**/*.test.ts"]
 }

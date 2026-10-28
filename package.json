@@ -14,8 +14,11 @@
   "scripts": {
     "build": "tsc -b && npm run build --workspaces --if-present",
     "dev:server": "npm run dev --workspace @project-havoc/server",
-    "dev:tv": "npm run dev --workspace @project-havoc/tv",
-    "dev:controller": "npm run dev --workspace @project-havoc/controller",
+    "dev:tv": "npm run dev --workspace @project-havoc/tv --",
+    "dev:controller": "npm run dev --workspace @project-havoc/controller --",
+    "dev": "npm run dev:lan",
+    "dev:lan": "tsx scripts/dev-lan.ts",
+    "doctor": "tsx scripts/doctor.ts",
     "typecheck": "tsc -b && tsc -p tsconfig.test.json",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",

@@ -1,96 +1,117 @@
 # Manueller Multiplayer-Test unter Windows
 
-## Voraussetzungen
+## Schnellstart
 
-- PC und Smartphones befinden sich im selben vertrauenswürdigen WLAN.
-- Node.js 22.12+, npm 11 und die Projektabhängigkeiten sind installiert.
-- Das WLAN erlaubt Kommunikation zwischen Geräten; ein Gastnetz mit Client-Isolation funktioniert nicht.
-- Windows darf Node.js in privaten Netzwerken akzeptieren. Eine Firewall-Regel nur nach dem normalen Windows-Dialog und nur für private Netze freigeben; keine Firewall deaktivieren.
+Voraussetzungen: Node.js 22.12+, npm 11, installierte Abhängigkeiten sowie PC und Smartphones im selben vertrauenswürdigen WLAN.
 
-## 1. LAN-Adresse des PCs ermitteln
+1. PowerShell öffnen.
+2. In `C:\\Users\\shark\\Desktop\\Project-Havoc` wechseln.
+3. `npm run dev` ausführen. Der Befehl startet den LAN-Launcher für Backend, TV und Controller.
+4. Die ausgegebene TV-Adresse auf dem PC öffnen.
+5. Auf `Neues Spiel` klicken und den QR-Code mit dem Smartphone scannen.
+6. Namen eingeben, beitreten und spielen.
 
-In PowerShell:
+Der Launcher erkennt die aktive IPv4-Adresse anhand der Windows-Standardroute, startet Backend, TV und Controller, konfiguriert die exakten CORS-Origins und zeigt beispielsweise:
+
+```text
+LAN-IP:       192.168.x.x (automatisch erkannt)
+TV:           http://192.168.x.x:5173
+Smartphone:   http://192.168.x.x:5174
+Backend:      http://192.168.x.x:3000
+```
+
+Die konkreten Werte stammen immer vom eigenen PC. Mit `Strg+C` werden alle drei gestarteten Prozesse beendet.
+
+## Diagnose und manueller Fallback
+
+Diese Prüfung verändert keine Systemeinstellungen:
 
 ```powershell
-Get-NetIPAddress -AddressFamily IPv4 |
-  Where-Object { $_.IPAddress -notlike '127.*' -and $_.PrefixOrigin -ne 'WellKnown' } |
-  Select-Object InterfaceAlias, IPAddress
+npm run doctor
 ```
 
-Die Adresse des aktiven WLAN-Adapters verwenden, beispielsweise `192.168.1.20`. VPN-, Hyper-V- und inaktive Adapter ignorieren. Im Folgenden diese Beispieladresse ersetzen.
+Sie zeigt die ausgewählte LAN-IP, Ports und die lokale Erreichbarkeit aller Dienste. Findet Windows mehrere geeignete Standardrouten, bricht der Launcher sicher ab und zeigt Kandidaten. Dann eine tatsächlich am PC konfigurierte Adresse wählen:
 
-## 2. Browserkonfiguration anlegen
-
-`apps/tv/.env.local`:
-
-```dotenv
-VITE_HAVOC_SERVER_URL=http://192.168.1.20:3000
-VITE_PUBLIC_JOIN_URL=http://192.168.1.20:5174/
+```powershell
+$env:HAVOC_LAN_IP='192.168.x.x'
+npm run dev
 ```
 
-`apps/controller/.env.local`:
+Den Platzhalter nicht unverändert übernehmen. Die aktuelle IPv4-Konfiguration lässt sich zusätzlich mit `ipconfig` anzeigen.
 
-```dotenv
-VITE_HAVOC_SERVER_URL=http://192.168.1.20:3000
-```
+Für Sonderfälle bleiben `VITE_HAVOC_SERVER_URL`, `VITE_PUBLIC_JOIN_URL`, `CORS_ORIGINS` und die Einzelbefehle verfügbar. Beim normalen LAN-Start sind keine `.env.local`-Dateien notwendig.
 
-Die `.env.local`-Dateien sind ignoriert und dürfen keine echten Produktionsgeheimnisse enthalten.
+### Manueller Drei-Terminal-Start
 
-## 3. Drei Terminals starten
+Nur falls der automatische Launcher nicht verwendet werden kann, die tatsächlich ermittelte LAN-IP statt `192.168.x.x` einsetzen und passende `.env.local`-Werte für TV und Controller anlegen.
 
-Terminal 1 – Server:
+Terminal 1:
 
 ```powershell
 $env:HOST='0.0.0.0'
 $env:PORT='3000'
-$env:CORS_ORIGINS='http://192.168.1.20:5173,http://192.168.1.20:5174'
+$env:CORS_ORIGINS='http://192.168.x.x:5173,http://192.168.x.x:5174'
 $env:RECONNECT_TOKEN_SECRET='replace-with-at-least-32-random-bytes-for-this-test'
 npm run dev:server
 ```
 
-Terminal 2 – TV:
+Terminal 2:
 
 ```powershell
 npm run dev:tv -- --host 0.0.0.0 --port 5173
 ```
 
-Terminal 3 – Controller:
+Terminal 3:
 
 ```powershell
 npm run dev:controller -- --host 0.0.0.0 --port 5174
 ```
 
-Vom PC aus `http://192.168.1.20:5173` öffnen. Auf einem Smartphone testweise `http://192.168.1.20:5174` aufrufen. Wenn die Seite nicht lädt, zuerst WLAN-Isolation, gewählte IP und den Windows-Firewall-Dialog prüfen.
+Das `--` nach dem Root-Skriptnamen leitet die Vite-Optionen korrekt durch den npm-Workspace-Wrapper.
 
-## 4. Vollständiger Ablauf
+## Windows-Firewall und WLAN
 
-1. Auf dem TV `Neues Spiel` wählen.
-2. Prüfen, dass Raumcode, Join-URL und QR-Code dieselbe Raumkennung enthalten.
-3. QR-Code mit Smartphone 1 scannen; Name eingeben und beitreten.
-4. QR-Code mit Smartphone 2 scannen; einen anderen Namen verwenden.
-5. Prüfen, dass beide Namen sofort auf dem TV erscheinen.
-6. Auf beiden Smartphones `Bereit machen` wählen; TV muss beide als bereit zeigen.
-7. Auf dem TV zwischen Classic und Chaos wechseln; beide Smartphones müssen den Modus anzeigen.
-8. Auf dem TV `Spiel starten` wählen; TV und beide Smartphones müssen in den neutralen Started-Zustand wechseln.
+- Den Node.js-Zugriff im Windows-Dialog ausschließlich für private Netzwerke erlauben.
+- Die Firewall nicht deaktivieren; der Launcher verändert keine Firewall-Regel.
+- Gastnetze oder WLANs mit Client-/AP-Isolation verhindern die Verbindung zwischen Smartphone und PC.
+- VPNs können eine zweite Standardroute erzeugen. Bei Mehrdeutigkeit VPN deaktivieren oder `HAVOC_LAN_IP` bewusst setzen.
+- Der Launcher bindet alle drei Dienste nur an die ausgewählte LAN-Adresse, öffnet keine Router-Ports und richtet kein Internet-Deployment ein.
 
-## 5. Reconnect prüfen
+## Vollständiger Smartphone-Test
 
-1. Vor einem neuen Startdurchlauf Smartphone 1 in der Lobby verbinden.
-2. Browserseite neu laden. Derselbe Name und Sitz müssen zurückkehren; auf dem TV darf kein zweiter Sitz entstehen.
-3. WLAN am Smartphone kurz deaktivieren. Der TV muss `Verbindung getrennt` anzeigen.
-4. WLAN wieder aktivieren und Seite geöffnet lassen. Smartphone und TV müssen denselben Sitz automatisch wieder als verbunden zeigen.
-5. Optional die Seite in einem zweiten Tab desselben Browsers öffnen: Die gültige raumspezifische Berechtigung ersetzt die ältere Verbindung sicher.
+1. `npm run dev` starten und alle drei ausgegebenen Adressen prüfen.
+2. Die TV-Adresse am PC öffnen und `Neues Spiel` wählen.
+3. Sicherstellen, dass Join-Link und QR-Code Port 5174, dieselbe LAN-IP und denselben Raumcode enthalten.
+4. QR-Code mit Smartphone 1 scannen, einen Namen eingeben und beitreten.
+5. QR-Code mit Smartphone 2 scannen und einen anderen Namen verwenden.
+6. Prüfen, dass beide Namen unmittelbar am TV erscheinen.
+7. Beide Smartphones bereit schalten; der TV muss beide als bereit anzeigen.
+8. Am TV zwischen Classic und Chaos wechseln; beide Smartphones müssen den Modus anzeigen.
+9. Spiel starten; TV und Smartphones müssen in den neutralen Started-Zustand wechseln.
 
-## 6. Raum schließen
+## Reconnect und Raumende
 
-1. Auf dem TV `Raum schließen` wählen.
-2. Dialog zunächst abbrechen und prüfen, dass die Sitzung bestehen bleibt.
-3. Erneut öffnen und bestätigen.
-4. TV und Smartphones müssen jeweils den geschlossenen Zustand zeigen; ein Reconnect darf die Sitzung nicht wieder öffnen.
+1. Vor dem Spielstart eine Controller-Seite neu laden. Derselbe Sitz muss ohne Duplikat wiederhergestellt werden.
+2. WLAN am Smartphone kurz deaktivieren. TV und Controller müssen den Verbindungsverlust anzeigen.
+3. WLAN wieder aktivieren und die Seite geöffnet lassen. Derselbe Spieler muss automatisch zurückkehren.
+4. `Raum schließen` am TV zunächst abbrechen und anschließend bestätigen.
+5. TV und Controller müssen den geschlossenen Zustand anzeigen; der Raum darf nicht durch Reconnect wieder geöffnet werden.
+
+## Was automatisiert geprüft wird
+
+- Auswahl und Ablehnung von LAN-Adressen bei einem oder mehreren Adaptern
+- Port-, URL-, Join-Link- und CORS-Erzeugung
+- Unterdrückung falscher TV-/localhost-QR-Codes
+- QR-Inhalt und URL-Kodierung
+- echter lokaler Socket.IO-Verbund mit TV und mehreren Controller-Browserkontexten
+- Reload, Disconnect, Reconnect, ungültige Credentials und acht Spieler
+- Startbereitschaft, Prozessgruppen-Shutdown und HTTP-Diagnose
+
+Ein Browser-E2E-Test auf demselben PC kann weder WLAN-Client-Isolation noch Windows-Firewallregeln, Kamera-Scan, mobile Browserbesonderheiten oder echte Funkunterbrechungen beweisen. Diese Punkte müssen mindestens einmal mit einem physischen Smartphone im Ziel-WLAN geprüft werden.
 
 ## Sicherheits- und Betriebsgrenzen
 
 - Reconnect-Tokens stehen niemals im QR-Code oder in der URL.
-- Spieler-Credentials liegen raumspezifisch in `localStorage`; sie sind gegen andere Origins isoliert, aber nicht gegen schädliche Scripts desselben Origins.
-- Der Server speichert Räume nur im Arbeitsspeicher. Ein Neustart beendet alle Sitzungen.
-- HTTP ist nur für das vertrauenswürdige lokale Alpha-Netz vorgesehen. Für öffentlichen Betrieb sind HTTPS und ein erweitertes Bedrohungsmodell erforderlich.
+- Spieler-Credentials liegen raumspezifisch in `localStorage`; sie schützen nicht vor schädlichem JavaScript desselben Origins.
+- Räume existieren nur im Arbeitsspeicher und enden bei einem Serverneustart.
+- HTTP ist ausschließlich für die lokale Alpha in einem vertrauenswürdigen privaten Netzwerk vorgesehen.

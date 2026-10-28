@@ -324,7 +324,7 @@ Die Defaults begrenzen Verbindungsversuche auf 30 pro Minute und IP, Raumerstell
 
 Host-ID, Raumbezug, Token und letzte Revision liegen in `sessionStorage`. Das begrenzt die Persistenz auf die Tab-Sitzung und unterstützt Reload, schützt aber nicht vor Scripts innerhalb desselben Origins. Bei Raumende, ungültiger Sitzung oder verlorener Hostberechtigung werden die Daten entfernt.
 
-`VITE_HAVOC_SERVER_URL` bestimmt den Browser-Socket-Endpunkt. Ohne Angabe verwendet der Client den aktuellen Seitenhostname auf Port 3000. `VITE_PUBLIC_JOIN_URL` ist bewusst separat: Nur der Betreiber kennt die aus dem Smartphone erreichbare LAN-Adresse. Fehlt sie, bleibt die URL korrekt kodiert, wird aber sichtbar als nicht LAN-konfiguriert markiert. Der QR-Bereich ist lediglich eine semantische Vorbereitung und generiert noch keinen Code.
+`VITE_HAVOC_SERVER_URL` bestimmt den Browser-Socket-Endpunkt; `VITE_PUBLIC_JOIN_URL` bestimmt separat die vom Smartphone erreichbare Controller-Basis. Fehlt eine gültige Controller-Adresse oder zeigt sie auf Loopback, rendert der TV bewusst keinen QR-Code. `npm run dev` delegiert an den LAN-Launcher, ermittelt die aktive Windows-IPv4-Schnittstelle über die Standardroute, injiziert beide Werte in die Vite-Prozesse und konfiguriert die exakte Server-CORS-Allowlist. Bei mehreren plausiblen Standardrouten wird nicht geraten; `HAVOC_LAN_IP` ist der explizite Fallback.
 
 ### Darstellung und Zugänglichkeit
 
@@ -338,4 +338,8 @@ Spieler-Credentials werden nach Raumcode getrennt in `localStorage` gespeichert,
 
 Der TV erzeugt den QR-Code mit `qrcode` vollständig lokal als Data-URL. Sein einziger Inhalt ist die konfigurierte öffentliche Join-URL einschließlich `room`-Parameter; Host- und Spieler-Credentials sind ausgeschlossen. Das QR-Modul wird bei jeder neuen Join-URL neu erzeugt.
 
+Der LAN-Launcher verwaltet Backend, TV und Controller als eine Prozessgruppe, prüft deren HTTP-Bereitschaft und beendet die von ihm gestarteten Prozessbäume gemeinsam. `npm run doctor` liest Adapter- und Dienstzustand nur und verändert weder Firewall noch Netzwerkkonfiguration.
+
 TV und Controller behalten getrennte React-Hooks. Eine gemeinsame Transportabstraktion wurde geprüft, aber nicht eingeführt: Protokollvalidierung ist bereits geteilt, während Rollenbindung, Credential-Speicherung, Fehlerfolgen und UI-Lebenszyklen verschieden sind. Eine weitere Abstraktion hätte gegenwärtig mehr Verzweigungen als entfernte Duplikation.
+
+Browserseitige Action-IDs entstehen zentral im Protokollpaket aus `crypto.getRandomValues`. Anders als `crypto.randomUUID` steht diese primitive Zufallsquelle auch im bewusst per HTTP betriebenen privaten LAN-Kontext zur Verfügung. Ausstehende TV-Aktionen besitzen ein begrenztes Antwortfenster; Timeout, Ablehnung oder Disconnect lösen den Ladezustand und erlauben einen bewussten neuen Versuch.
