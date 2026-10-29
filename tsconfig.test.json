@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "types": ["node", "vitest/globals", "vite/client"],
+    "paths": {
+      "@project-havoc/game-core": ["./packages/game-core/src/index.ts"],
+      "@project-havoc/protocol": ["./packages/protocol/src/index.ts"],
+      "@project-havoc/test-support": ["./packages/test-support/src/index.ts"]
+    }
+  },
+  "include": ["packages/**/*.test.ts", "apps/**/*.test.ts", "apps/**/*.test.tsx", "scripts/**/*.test.ts"]
+}
