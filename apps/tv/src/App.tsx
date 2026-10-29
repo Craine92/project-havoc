@@ -6,6 +6,7 @@ import type { ConnectionState, TvLobbyModel } from './types.js'
 import { useTvLobby } from './useTvLobby.js'
 import { QrCode } from './QrCode.js'
 import { TvGameScreen } from './game/TvGameScreen.js'
+import { ChaosGuide } from './game/ChaosGuide.js'
 
 const VERSION = `Chaos-Light · Freitag-Edition`
 
@@ -168,17 +169,12 @@ export function LobbyScreen({ model }: { readonly model: TvLobbyModel }): React.
         <section className="mode-panel panel">
           <div className="section-heading section-heading--compact">
             <div>
-              <span className="panel-label">Spielmodus</span>
-              <h2>Auf hoher See</h2>
+              <span className="panel-label">Chaos-Modus</span>
+              <h2>So wird gespielt</h2>
             </div>
             {model.pendingAction === 'set-mode' && <span className="pending-label">Server prüft …</span>}
           </div>
-          <div className="mode-options">
-            <div className="mode-card mode-card--chaos mode-card--selected" aria-label="Chaos-Modus">
-              <span className="mode-card__icon mode-card__icon--chaos">☠</span>
-              <span><strong>Chaos</strong><small>Meuterei, Strudel, Kraken – nichts läuft nach Plan.</small></span>
-            </div>
-          </div>
+          <ChaosGuide />
         </section>
 
         <section className="launch-panel panel">

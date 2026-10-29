@@ -1,24 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { CardColor } from '@project-havoc/game-core'
-import type { ChaosPlayerView, HavocCard } from '@project-havoc/rules-chaos'
+import {
+  CHAOS_DESCRIPTIONS,
+  CHAOS_ICONS,
+  CHAOS_LABELS,
+  EVENT_DESCRIPTIONS,
+  EVENT_ICONS,
+  EVENT_LABELS,
+  type ChaosPlayerView,
+  type HavocCard,
+} from '@project-havoc/rules-chaos'
 
 import type { ControllerModel } from '../types.js'
 import { HavocCardView } from './Card.js'
+import { ChaosGuide } from './ChaosGuide.js'
 import { COLOR_NAMES } from './colors.js'
 import './game.css'
 
 const COLORS: readonly CardColor[] = ['red', 'yellow', 'green', 'blue']
-
-const CHAOS_ICONS: Record<string, string> = { mutiny: '⚔', maelstrom: '🌀', 'cursed-dice': '🎲', lifebuoy: '🛟', backfire: '💥' }
-
-const CHAOS_HELP: Record<string, string> = {
-  mutiny: 'Tausche deine Hand mit einem Gegner.',
-  maelstrom: 'Alle Hände wandern eine Position weiter.',
-  'cursed-dice': 'Ein Gegner zieht 1–6 Karten.',
-  lifebuoy: 'Hebe ihn auf! Er wehrt eine Strafe ab.',
-  backfire: 'Hebe ihn auf! Er lenkt eine Strafe um.',
-}
 
 function needsColor(card: HavocCard): boolean {
   return card.kind === 'wild' || card.kind === 'wild-draw-four' || card.kind === 'chaos'
@@ -64,6 +64,7 @@ export function GameScreen({ model, game }: { readonly model: ControllerModel; r
   const now = useNow(model.clockOffset)
   const [rawSelection, setSelection] = useState<Selection | null>(null)
   const [rawMirrorPicking, setMirrorPicking] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
   const me = game.players.find((player) => player.playerId === game.viewerId)
   const myTurn = game.activePlayerId === game.viewerId && game.turn !== 'reaction'
   const reactingToMe = game.reactionOptions !== null
@@ -141,6 +142,7 @@ export function GameScreen({ model, game }: { readonly model: ControllerModel; r
           <small>{COLOR_NAMES[game.activeColor]} · {game.finalPhase ? '☠ Finale ' : ''}{formatClock(game.endsAt - now)}</small>
         </div>
         <HavocCardView card={game.topCard} size="sm" tint={'color' in game.topCard ? undefined : game.activeColor} />
+        <button className="guide-btn" onClick={() => setShowGuide(true)} aria-label="Regeln anzeigen">?</button>
       </header>
 
       <section className="opponents" aria-label="Gegner">
@@ -181,8 +183,18 @@ export function GameScreen({ model, game }: { readonly model: ControllerModel; r
       </section>
       {chaosKinds.length > 0 && (
         <ul className="hand-help">
-          {chaosKinds.map((kind) => <li key={kind}><b>{CHAOS_ICONS[kind]}</b> {CHAOS_HELP[kind]}</li>)}
+          {chaosKinds.map((kind) => <li key={kind}><b>{CHAOS_ICONS[kind]} {CHAOS_LABELS[kind]}:</b> {CHAOS_DESCRIPTIONS[kind]}</li>)}
         </ul>
+      )}
+
+      {showGuide && (
+        <div className="sheet-backdrop" onClick={() => setShowGuide(false)}>
+          <section className="sheet sheet--guide" onClick={(event) => event.stopPropagation()}>
+            <h2>Kurz erklärt</h2>
+            <ChaosGuide compact />
+            <button className="game-btn game-btn--ghost" onClick={() => setShowGuide(false)}>Schließen</button>
+          </section>
+        </div>
       )}
 
       {/* Farbe / Ziel wählen */}
@@ -190,6 +202,7 @@ export function GameScreen({ model, game }: { readonly model: ControllerModel; r
         <div className="sheet-backdrop" onClick={() => setSelection(null)}>
           <section className="sheet" onClick={(event) => event.stopPropagation()}>
             <HavocCardView card={selection.card} size="md" />
+            {selection.card.kind === 'chaos' && <p className="sheet__explain">{CHAOS_DESCRIPTIONS[selection.card.chaos]}</p>}
             {!selection.color ? (
               <>
                 <h2>Welche Farbe soll gelten?</h2>
@@ -260,7 +273,8 @@ export function GameScreen({ model, game }: { readonly model: ControllerModel; r
       {/* Ereignis / Flaschenpost */}
       {event && (
         <div className="event-strip">
-          <strong>⚡ Ereignis!</strong> Schau auf den Fernseher.
+          <strong>{EVENT_ICONS[event.type]} {EVENT_LABELS[event.type]}!</strong>
+          <span className="event-strip__rule">{EVENT_DESCRIPTIONS[event.type]}</span>
           {game.reveal && (
             <div className="reveal">
               <span>📜 Flaschenpost: {nameOf(game, game.reveal.ownerId)} hat …</span>

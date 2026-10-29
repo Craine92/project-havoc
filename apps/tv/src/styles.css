@@ -346,3 +346,15 @@ button { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Kartenlexikon in der Lobby */
+.mode-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.mode-panel .guide { flex: 1; margin-top: .6rem; padding-right: .3rem; }
+/* Auf großen Bildschirmen bleibt die Lobby genau bildschirmhoch, das Lexikon scrollt innerhalb seiner Spalte. */
+@media (min-width: 1101px) {
+  .lobby-layout { height: calc(100vh - 7.5rem); }
+  .mode-panel .guide { min-height: 0; }
+}
+@media (min-width: 1101px) and (max-width: 1450px) {
+  .lobby-layout { height: calc(100vh - 5.5rem); }
+}

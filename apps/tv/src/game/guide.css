@@ -1,0 +1,14 @@
+/* Kartenlexikon. Identische Kopie in apps/controller/src/game/guide.css. */
+.guide { display: grid; gap: 1rem; min-height: 0; overflow-y: auto; color: #f5ecd6; }
+.guide h3 { margin: 0 0 0.5rem; color: #e7c35a; font-size: 0.95rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.guide h3 small { margin-left: 0.4rem; color: #a9b4b8; font-size: 0.7rem; letter-spacing: 0; text-transform: none; }
+.guide ul { display: grid; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
+.guide li { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 0.6rem; }
+.guide strong { font-size: 0.92rem; }
+.guide p { margin: 0.1rem 0 0; color: #c3ccd0; font-size: 0.78rem; line-height: 1.35; }
+.guide__icon { position: relative; display: grid; place-items: center; width: 2.3rem; height: 2.3rem; overflow: hidden; border: 1px solid rgba(231, 195, 90, 0.45); border-radius: 0.5rem; background: rgba(90, 29, 110, 0.35); font-size: 1.2rem; }
+.guide__icon img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.guide__badge { display: grid; place-items: center; width: 2.3rem; height: 1.7rem; border-radius: 0.4rem; background: rgba(255, 255, 255, 0.1); font-size: 0.85rem; }
+.guide__havoc { padding: 0.45rem 0.6rem; border-left: 3px solid #e0473c; border-radius: 0.3rem; background: rgba(224, 71, 60, 0.12); }
+.guide--compact { gap: 0.8rem; }
+.guide--compact p { font-size: 0.85rem; }

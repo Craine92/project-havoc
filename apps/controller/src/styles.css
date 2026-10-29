@@ -15,3 +15,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--cyan);outline-o
 @media(max-height:650px){.phone-hero{margin:1.2rem 0}.ready-orb{min-height:10rem}.identity-card{margin-top:.6rem}}
 @media(min-width:600px){.phone-shell{width:min(100%,500px);margin:0 auto;border-right:1px solid rgba(255,255,255,.05);border-left:1px solid rgba(255,255,255,.05)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+.phone-guide { margin-top: 1rem; padding: .8rem; border: 1px solid rgba(217,169,58,.35); border-radius: 1rem; background: rgba(0,0,0,.25); }
+.phone-guide summary { color: #e7c35a; font-weight: 700; cursor: pointer; }
+.phone-guide .guide { margin-top: .8rem; overflow: visible; }

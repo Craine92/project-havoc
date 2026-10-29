@@ -25,7 +25,8 @@
     "test:classic-simulation": "tsx scripts/simulate-classic.ts",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "predev:lan": "tsc -b"
+    "predev:lan": "tsc -b",
+    "assets:check": "tsx scripts/check-assets.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

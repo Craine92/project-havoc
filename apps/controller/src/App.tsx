@@ -4,6 +4,7 @@ import { roomCodeFromUrl } from './config.js'
 import type { ControllerConnection, ControllerModel } from './types.js'
 import { useController } from './useController.js'
 import { GameScreen } from './game/GameScreen.js'
+import { ChaosGuide } from './game/ChaosGuide.js'
 
 const connectionLabels: Record<ControllerConnection, string> = {
   connecting: 'Verbinden …', connected: 'Server verbunden', unavailable: 'Server offline', lost: 'Verbindung verloren', reconnecting: 'Wiederherstellen …', 'protocol-error': 'Protokollfehler',
@@ -90,6 +91,10 @@ export function LobbyScreen({ model }: { readonly model: ControllerModel }): Rea
         <div><span>Crew</span><strong>{session.players.filter((candidate) => candidate.connected).length} / {session.maxPlayers}</strong></div>
       </section>
       <p className="waiting-copy">Der TV-Host startet, sobald mindestens zwei Spieler bereit sind.</p>
+      <details className="phone-guide">
+        <summary>📜 Kurz erklärt: Chaos-Karten &amp; Ereignisse</summary>
+        <ChaosGuide compact />
+      </details>
     </main>
   )
 }

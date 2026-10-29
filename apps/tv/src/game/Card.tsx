@@ -31,6 +31,20 @@ function face(card: HavocCard): { glyph: string; corner: string; label: string }
   }
 }
 
+const ASSETS = `${import.meta.env.BASE_URL}assets/img/cards/`
+
+/** Optionales Kartenbild aus public/assets/img/cards/. Fehlt die Datei, bleibt das Symbol sichtbar. */
+function artFor(card: HavocCard): string | null {
+  if (card.kind === 'chaos') return `${ASSETS}${card.chaos}.png`
+  if (card.kind === 'wild') return `${ASSETS}compass.png`
+  if (card.kind === 'wild-draw-four') return `${ASSETS}broadside.png`
+  return null
+}
+
+function Art({ src }: { readonly src: string }): React.JSX.Element {
+  return <img className="hcard__art" src={src} alt="" draggable={false} onError={(event) => { event.currentTarget.style.display = 'none' }} />
+}
+
 function cardTone(card: HavocCard): string {
   if ('color' in card) return card.color
   return card.kind === 'chaos' ? 'chaos' : 'wild'
@@ -45,6 +59,7 @@ export function HavocCardView({ card, size = 'md', dim = false, glow = false, ti
   readonly tint?: CardColor | undefined
 }): React.JSX.Element {
   const { glyph, corner, label } = face(card)
+  const art = artFor(card)
   const classes = [
     'hcard', `hcard--${size}`, `hcard--${cardTone(card)}`,
     dim ? 'hcard--dim' : '', glow ? 'hcard--glow' : '', tint ? `hcard--tint-${tint}` : '',
@@ -53,6 +68,7 @@ export function HavocCardView({ card, size = 'md', dim = false, glow = false, ti
     <div className={classes} aria-label={label || glyph}>
       <span className="hcard__corner hcard__corner--tl">{corner}</span>
       <span className="hcard__oval"><span className="hcard__glyph">{glyph}</span></span>
+      {art && <Art src={art} />}
       {label && <span className="hcard__label">{label}</span>}
       <span className="hcard__corner hcard__corner--br">{corner}</span>
     </div>
@@ -63,6 +79,7 @@ export function CardBack({ size = 'md', count }: { readonly size?: 'sm' | 'md' |
   return (
     <div className={`hcard hcard--${size} hcard--back`}>
       <span className="hcard__back-art">☠</span>
+      <Art src={`${ASSETS}back.png`} />
       {count !== undefined && <span className="hcard__count">{count}</span>}
     </div>
   )

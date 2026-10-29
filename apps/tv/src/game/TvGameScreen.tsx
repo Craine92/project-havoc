@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import type { ChaosLastAction, ChaosPublicView } from '@project-havoc/rules-chaos'
+import { EVENT_DESCRIPTIONS, type ChaosLastAction, type ChaosPublicView } from '@project-havoc/rules-chaos'
 
 import type { TvLobbyModel } from '../types.js'
 import { sounds } from './audio.js'
@@ -199,8 +199,10 @@ export function TvGameScreen({ model, game }: { readonly model: TvLobbyModel; re
 
       {event && (
         <div className={`tv-event tv-event--${event.type}`} key={event.seq}>
+          <img className="tv-event__art" src={`${import.meta.env.BASE_URL}assets/img/events/${event.type}.png`} alt="" onError={(error) => { error.currentTarget.style.display = 'none' }} />
           <span className="tv-event__kicker">⚡ Ereignis</span>
           <h1>{EVENT_TITLES[event.type]}</h1>
+          <p className="tv-event__rule">{EVENT_DESCRIPTIONS[event.type]}</p>
           <p>{event.summary}</p>
           <div className="tv-event__bar"><span style={{ animationDuration: `${event.until - event.startedAt}ms` }} /></div>
         </div>
